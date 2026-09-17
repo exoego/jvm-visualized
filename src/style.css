@@ -3271,6 +3271,137 @@ code,
   font-size: 22px;
 }
 
+.start {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.start-source {
+  padding: 16px 0 8px;
+}
+
+.start-source .panel-title {
+  padding: 0 20px;
+}
+
+.start-code {
+  padding: 4px 0;
+  font-size: 13.5px;
+  line-height: 1.75;
+}
+
+.start-code .code-line {
+  min-height: 1.75em;
+}
+
+.start-code-note {
+  margin: 4px 20px 8px;
+  padding-top: 12px;
+  color: var(--text-3);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.start-right {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.term {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.8;
+  color: #e5e5ea;
+}
+
+.term .tline {
+  display: block;
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.start.play .tline {
+  animation: rise 0.45s var(--ease) both;
+  animation-delay: var(--d);
+}
+
+.term .prompt {
+  color: var(--text-3);
+}
+
+.term .out {
+  color: var(--text-2);
+}
+
+.hexdump {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 13px;
+}
+
+.hrow {
+  display: flex;
+  gap: 16px;
+}
+
+.hoff {
+  color: var(--text-3);
+}
+
+.hbytes {
+  display: grid;
+  grid-template-columns: repeat(16, minmax(0, 1fr));
+  gap: 4px;
+  flex: 1;
+}
+
+.hb {
+  text-align: center;
+  color: var(--text-2);
+  opacity: 0;
+}
+
+.hb.magic {
+  color: #fff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+}
+
+.start.play .hb {
+  animation: fade 0.35s var(--ease) both;
+  animation-delay: var(--d);
+}
+
+.start-note {
+  margin: 14px 0 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+@media (max-width: 1080px) {
+  .start {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hbytes {
+    gap: 2px;
+  }
+
+  .hrow {
+    gap: 10px;
+    font-size: 11.5px;
+  }
+}
+
 /* ---------- Fit each widget into the window ---------- */
 
 @media (min-width: 1081px) and (min-height: 700px) {

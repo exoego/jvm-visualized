@@ -17,7 +17,7 @@ export function initReveal(): void {
   targets.forEach((t) => observer.observe(t));
 }
 
-export function onceVisible(target: Element, callback: () => void): void {
+export function onceVisible(target: Element, callback: () => void, rootMargin = '0px 0px -45% 0px'): void {
   const observer = new IntersectionObserver(
     (entries) => {
       if (entries.some((e) => e.isIntersecting)) {
@@ -25,7 +25,7 @@ export function onceVisible(target: Element, callback: () => void): void {
         callback();
       }
     },
-    { rootMargin: '0px 0px -45% 0px' },
+    { rootMargin },
   );
   observer.observe(target);
 }

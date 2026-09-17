@@ -611,7 +611,7 @@ export function mountStructure(root: HTMLElement, cf: ClassFile): void {
     const token = ++sweep;
     const frame = (now: number) => {
       if (token !== sweep) return;
-      const t = Math.min(1, (now - start) / duration);
+      const t = Math.min(1, Math.max(0, (now - start) / duration));
       const eased = 1 - Math.pow(1 - t, 2);
       const upto = Math.min(entries.length, Math.floor(eased * entries.length) + 1);
       while (shown < upto) {

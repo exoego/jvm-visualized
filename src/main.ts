@@ -6,6 +6,7 @@ import { ClassFormatError, parseClassFile } from './classfile/parse';
 import { mountPool } from './sections/pool';
 import { mountRuntime } from './sections/runtime';
 import { mountSource } from './sections/source';
+import { mountStart } from './sections/start';
 import { mountStructure } from './sections/structure';
 import { h, mount } from './ui/dom';
 import { initReveal, trackNav } from './ui/reveal';
@@ -17,6 +18,8 @@ async function main(): Promise<void> {
   const size = bytes.length.toLocaleString('en-US');
 
   document.querySelectorAll('[data-bind="size"]').forEach((el) => (el.textContent = size));
+  const lineCount = String(javaSource.replace(/\n$/, '').split('\n').length);
+  document.querySelectorAll('[data-bind="lines"]').forEach((el) => (el.textContent = lineCount));
 
   const dump = mount('dump');
   if (dump) {
@@ -27,10 +30,11 @@ async function main(): Promise<void> {
   mount('meta')?.append(
     h('span', { class: 'meta-pill' }, 'Greeter.java'),
     h('span', { class: 'meta-pill' }, 'javac 21 · --release 21'),
-    h('span', { class: 'meta-pill' }, `${size} bytes`),
+    h('span', { class: 'meta-pill' }, 'JVMS Java SE 21'),
   );
   mount('footer-meta')?.append(`javac 21.0.2 --release 21 でコンパイルした ${size} バイト`);
 
+  mountStart(mount('start')!, cf, javaSource);
   mountStructure(mount('structure')!, cf);
   const pool = mountPool(mount('pool')!, cf);
   mountSource(mount('source')!, cf, javaSource, (index) => {

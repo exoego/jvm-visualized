@@ -29,7 +29,7 @@ const PICKS: { label: string; find: (cf: ClassFile) => number | undefined }[] = 
   { label: 'System.out', find: (cf) => firstInsn(cf, 'getstatic') },
   { label: '文字列 "JVM"', find: (cf) => firstInsn(cf, 'ldc') },
   { label: 'invokedynamic', find: (cf) => firstInsn(cf, 'invokedynamic') },
-  { label: 'Long (2 枠)', find: (cf) => cf.pool.find((e) => e?.kind === 'Long' || e?.kind === 'Double')?.index },
+  { label: 'static final の値', find: (cf) => cf.fields.flatMap((f) => f.attributes).find((a) => a.name === 'ConstantValue')?.constantValue },
   { label: 'Utf8 "<init>"', find: (cf) => cf.pool.find((e) => e?.kind === 'Utf8' && e.utf8 === '<init>')?.index },
 ];
 

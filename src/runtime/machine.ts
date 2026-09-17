@@ -82,6 +82,9 @@ type Emit = Omit<Snapshot, 'frames' | 'heap' | 'classes' | 'rcp' | 'console' | '
 
 const simple = (name: string) => name.split('/').pop() ?? name;
 
+const defaultValue = (descriptor: string) =>
+  ({ Z: 'false', F: '0.0', D: '0.0', L: 'null', '[': 'null' } as Record<string, string>)[descriptor[0]] ?? '0';
+
 const paramCount = (descriptor: string) => {
   const params = prettyDescriptor(descriptor).split(' → ')[0];
   return params === '()' ? 0 : params.split(', ').length;
@@ -252,40 +255,58 @@ class Machine {
       focusClasses: [this.self],
     });
 
-    const seedField = this.cf.fields.find((f) => f.attributes.some((a) => a.name === 'ConstantValue'));
+    const constants = this.cf.fields.filter(
+      (f) => (f.accessFlags & 0x0018) === 0x0018 && f.attributes.some((a) => a.name === 'ConstantValue'),
+    );
     const self = this.cls(this.self)!;
     self.phase = 2;
     self.statics = this.cf.fields
       .filter((f) => f.accessFlags & 0x0008)
-      .map((f) => ({ name: f.name, value: '0' }));
+      .map((f) => ({ name: f.name, value: defaultValue(f.descriptor) }));
     this.emit({
       title: 'リンク — 検証と準備',
-      body: 'バイトコードが安全に実行できるかを**検証**します。続く**準備**では static フィールドの領域を作り、既定値を入れます。' +
-        (seedField ? `\`${seedField.name}\` はまだ 0 です。` : ''),
+      body:
+        'バイトコードが安全に実行できるかを**検証**します。続く**準備**では static フィールドの領域を作り、既定値を入れます。' +
+        (constants.length ? `\`${constants[0].name}\` はまだ ${defaultValue(constants[0].descriptor)} です。` : ''),
       tone: 'load',
       specs: ['5.4.1', '5.4.2'],
       focusClasses: [this.self],
     });
 
     self.phase = 3;
-    let cvIndex: number | undefined;
-    if (seedField) {
-      cvIndex = seedField.attributes.find((a) => a.name === 'ConstantValue')!.constantValue!;
-      const value = this.cf.pool[cvIndex]!.number;
-      const shown = typeof value === 'bigint' ? `0x${value.toString(16).toUpperCase()}` : String(value);
-      self.statics = self.statics?.map((s) => (s.name === seedField.name ? { ...s, value: shown } : s));
+    const assigned: string[] = [];
+    const focusHeap: number[] = [];
+    const links: Link[] = [];
+    for (const field of constants) {
+      const cvIndex = field.attributes.find((a) => a.name === 'ConstantValue')!.constantValue!;
+      const entry = this.cf.pool[cvIndex]!;
+      let shown: string;
+      if (entry.kind === 'String') {
+        const text = cpText(this.cf, cvIndex);
+        const id = this.alloc({ type: 'String', className: 'java/lang/String', text, tag: 'intern 済み' });
+        shown = `"${text}"`;
+        focusHeap.push(id);
+        links.push({ from: `class:${this.self}`, to: `heap:${id}` });
+      } else {
+        shown = entry.kind === 'Long' ? `${entry.number}L` : String(entry.number);
+      }
+      self.statics = self.statics?.map((st) => (st.name === field.name ? { ...st, value: shown } : st));
+      assigned.push(`\`${field.name}\` ← \`#${cvIndex}\` の ${shown}`);
     }
     const clinit = this.methods.has('<clinit>');
     this.emit({
       title: '初期化',
       body:
-        (seedField
-          ? `ConstantValue 属性を持つ final static フィールドには、ここで定数プールの値が入ります。\`${seedField.name}\` ← \`#${cvIndex}\`。`
+        (assigned.length
+          ? `ConstantValue 属性を持つ static final フィールドには、ここで定数プールの値が入ります。${assigned.join('、')}。` +
+            (focusHeap.length ? 'String の値は、intern された文字列への参照です。' : '')
           : '') +
-        (clinit ? '続いて `<clinit>` を実行します。' : 'Greeter には `<clinit>` がないので、実行するコードはありません。'),
+        (clinit ? '続いて `<clinit>` を実行します。' : `${simple(this.self)} には \`<clinit>\` がないので、実行するコードはありません。`),
       tone: 'static',
-      specs: ['5.5'],
+      specs: ['5.5', '4.7.2'],
       focusClasses: [this.self],
+      focusHeap,
+      links,
     });
 
     const args = this.alloc({ type: 'array', className: 'java/lang/String[]', text: 'length = 0', tag: 'args' });

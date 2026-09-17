@@ -31,12 +31,12 @@ const SPOTS: Spot[] = [
     origins: [{ kind: 'thisClass' }, { kind: 'superClass' }],
   },
   {
-    id: 'seed',
+    id: 'constant',
     line: 2,
-    match: 'static final long SEED = 0xCAFEBABEL;',
+    match: 'private static final String GREETING = "Hello, ";',
     title: '定数フィールド',
-    note: 'コンパイル時定数なので、値は **ConstantValue 属性**に入ります。Long は番号を 2 つ使うので、すぐ後ろの番号は欠番です。このフィールドを読むコードがあっても、javac は値をその場に埋め込みます。',
-    origins: [{ kind: 'member', member: 'field', name: 'SEED', attributes: true }],
+    note: '値がコンパイル時に決まる `static final` の定数です。値 "Hello, " は **ConstantValue 属性**に入り、クラスを初期化するときにフィールドへ入ります。',
+    origins: [{ kind: 'member', member: 'field', name: 'GREETING', attributes: true }],
   },
   {
     id: 'field',
@@ -76,9 +76,9 @@ const SPOTS: Spot[] = [
   {
     id: 'concat',
     line: 11,
-    match: '"Hello, " + name + "!"',
+    match: 'GREETING + name + "!"',
     title: '文字列の連結',
-    note: 'Java 9 以降、文字列の `+` は **invokedynamic** になります (JEP 280)。定数の部分は 1 つのレシピ `"Hello, \\u0001!"` にまとめられ、`\\u0001` の位置に name の値が入ります。ブートストラップメソッドのために、BootstrapMethods 属性と InnerClasses 属性まで生まれます。',
+    note: 'Java 9 以降、文字列の `+` は **invokedynamic** になります (JEP 280)。`GREETING` は定数なので、javac は値 "Hello, " をその場に埋め込み、`"Hello, \\u0001!"` という 1 つのレシピにまとめます。バイトコードは GREETING を読みません。`\\u0001` の位置に name の値が入ります。',
     origins: [
       { kind: 'insn', line: 11 },
       { kind: 'attribute', name: 'BootstrapMethods' },
@@ -263,7 +263,7 @@ const KEYWORDS = new Set([
   'int', 'this', 'extends', 'implements', 'boolean', 'double', 'float', 'char', 'byte', 'short',
 ]);
 
-function tokenize(line: string): string[] {
+export function tokenize(line: string): string[] {
   const classes = new Array<string>(line.length).fill('tok-plain');
   const re = /(\/\/.*$)|("(?:\\.|[^"\\])*")|(\b0x[\dA-Fa-f_]+L?\b|\b\d[\d_]*L?\b)|([A-Za-z_][A-Za-z0-9_]*)|([{}()[\];.,=+])/g;
   let m: RegExpExecArray | null;

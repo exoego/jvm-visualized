@@ -20,6 +20,7 @@
       <div class="nav-inner">
         <a class="brand" href="#top"><span class="brand-mark">CAFE</span>JVM Visualized</a>
         <ul class="nav-links">
+          <li><a href="#start"><span class="num">00</span><span class="txt">題材</span></a></li>
           <li><a href="#structure"><span class="num">01</span><span class="txt">構造</span></a></li>
           <li><a href="#pool"><span class="num">02</span><span class="txt">定数プール</span></a></li>
           <li><a href="#source"><span class="num">03</span><span class="txt">ソース</span></a></li>
@@ -40,7 +41,7 @@
             定数プールに何が入り、実行時にどう使われるのかを、アニメーションで追います。
           </p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="#structure">読みはじめる</a>
+            <a class="btn btn-primary" href="#start">読みはじめる</a>
             <a
               class="btn-link"
               href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html"
@@ -54,12 +55,24 @@
         </div>
       </header>
 
+      <section id="start" class="chapter" style="--accent: var(--text-2)">
+        <header class="chapter-head reveal">
+          <p class="eyebrow"><span class="num">00</span>題材<span class="spec">Greeter.java</span></p>
+          <h2>すべては<br />この <span data-bind="lines"></span> 行から</h2>
+          <p class="lede">
+            題材は、名前を受け取ってあいさつを返すだけの小さなクラス Greeter です。javac でコンパイルすると、<span data-bind="size"></span>
+            バイトの Greeter.class ができます。このページでは、そのバイト列を JVM 仕様のとおりに読んでいきます。
+          </p>
+        </header>
+        <div class="stage reveal" data-mount="start"></div>
+      </section>
+
       <section id="structure" class="chapter" style="--accent: var(--cyan)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">01</span>ClassFile 構造<span class="spec">§4.1</span></p>
           <h2>区切りのない<br /><span data-bind="size"></span> バイト</h2>
           <p class="lede">
-            class ファイルには区切り文字も目次もありません。先頭から順に読み、読んだ値から次の長さを知る。JVM
+            Greeter.class には区切り文字も目次もありません。先頭から順に読み、読んだ値から次の長さを知る。JVM
             と同じやり方で、端から端まで読んでみます。
           </p>
         </header>

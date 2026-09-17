@@ -1,5 +1,5 @@
 public class Greeter {
-    static final long SEED = 0xCAFEBABEL;
+    private static final String GREETING = "Hello, ";
 
     private final String name;
 
@@ -8,7 +8,7 @@ public class Greeter {
     }
 
     public String greet() {
-        return "Hello, " + name + "!";
+        return GREETING + name + "!";
     }
 
     public static void main(String[] args) {
