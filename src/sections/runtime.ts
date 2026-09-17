@@ -97,7 +97,7 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
   const consoleEl = h('pre', { class: 'console' });
   const fitters: Fitter[] = [];
 
-  const panel = (cls: string, title: string, aside: Node | string | null, body: HTMLElement) => {
+  const panel = (cls: string, title: string, spec: string | null, aside: Node | string | null, body: HTMLElement) => {
     const box = h('div', { class: 'fit-box' }, body);
     fitters.push(fitter(box, body));
     return h(
@@ -106,7 +106,24 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
       h(
         'h3',
         { class: 'panel-title' },
-        h('span', { class: 'pt' }, title),
+        h(
+          'span',
+          { class: 'pt' },
+          title,
+          spec
+            ? h(
+                'a',
+                {
+                  class: 'pt-spec',
+                  href: `https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-${spec.split('.')[0]}.html#jvms-${spec}`,
+                  target: '_blank',
+                  rel: 'noopener',
+                  title: `JVMS §${spec}`,
+                },
+                `§${spec}`,
+              )
+            : null,
+        ),
         aside ? h('span', { class: `aside${aside === seg ? ' keep' : ''}` }, aside) : null,
       ),
       box,
@@ -117,20 +134,20 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
   const grid = h(
     'div',
     { class: 'runtime' },
-    h('div', { class: 'rt-col' }, panel('grow bc-panel', 'バイトコード', seg, bcList)),
+    h('div', { class: 'rt-col' }, panel('grow bc-panel', 'バイトコード', null, seg, bcList)),
     h(
       'div',
       { class: 'rt-col' },
-      panel('grow', 'Java スタック · フレーム', '上が実行中', framesEl),
-      panel('classes-panel', 'メソッド領域 · クラス', null, classesEl),
+      panel('grow', 'Java スタック · フレーム', '2.6', '上が実行中', framesEl),
+      panel('classes-panel', 'メソッド領域 · クラス', '2.5.4', null, classesEl),
     ),
     h(
       'div',
       { class: 'rt-col' },
-      panel('grow', 'ヒープ', null, heapEl),
-      panel('console-panel', '標準出力', null, consoleEl),
+      panel('grow', 'ヒープ', '2.5.3', null, heapEl),
+      panel('console-panel', '標準出力', null, null, consoleEl),
     ),
-    h('div', { class: 'rt-col' }, panel('grow', '実行時定数プール', stats, rcpList)),
+    h('div', { class: 'rt-col' }, panel('grow', '実行時定数プール', '2.5.5', stats, rcpList)),
   );
 
   const player = new Player({

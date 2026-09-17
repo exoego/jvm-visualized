@@ -3402,6 +3402,59 @@ code,
   }
 }
 
+.spec-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.panel-title .pt {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pt-spec {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text-3);
+  transition: color 0.2s;
+}
+
+.pt-spec:hover {
+  color: var(--link);
+  text-decoration: none;
+}
+
+.footer-inner {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+}
+
+.spec-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 14px;
+}
+
+.spec-list span {
+  color: var(--text-3);
+}
+
+.spec-skip {
+  margin: 10px 0 0;
+  color: var(--text-3);
+}
+
+@media (max-width: 720px) {
+  .footer-inner {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* ---------- Fit each widget into the window ---------- */
 
 @media (min-width: 1081px) and (min-height: 700px) {

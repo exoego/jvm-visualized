@@ -30,7 +30,6 @@ async function main(): Promise<void> {
   mount('meta')?.append(
     h('span', { class: 'meta-pill' }, 'Greeter.java'),
     h('span', { class: 'meta-pill' }, 'javac 21 · --release 21'),
-    h('span', { class: 'meta-pill' }, 'JVMS Java SE 21'),
   );
   mount('footer-meta')?.append(`javac 21.0.2 --release 21 でコンパイルした ${size} バイト`);
 

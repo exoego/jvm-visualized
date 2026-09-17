@@ -1,6 +1,6 @@
 import { cpRaw, cpText, holdsValue } from '../classfile/describe';
 import type { ClassFile, Instruction, Member } from '../classfile/types';
-import { fill, fitter, h, rich, showable } from '../ui/dom';
+import { fill, fitter, h, rich, showable, specLink } from '../ui/dom';
 import { nodeText } from './graph';
 
 type Origin =
@@ -13,6 +13,7 @@ type Origin =
 
 interface Spot {
   id: string;
+  spec: string[];
   line?: number;
   match?: string;
   label?: string;
@@ -24,6 +25,7 @@ interface Spot {
 const SPOTS: Spot[] = [
   {
     id: 'class',
+    spec: ['4.1', '4.4.1'],
     line: 1,
     match: 'class Greeter',
     title: 'クラス宣言',
@@ -32,6 +34,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'constant',
+    spec: ['4.7.2', '5.5'],
     line: 2,
     match: 'private static final String GREETING = "Hello, ";',
     title: '定数フィールド',
@@ -40,6 +43,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'field',
+    spec: ['4.5', '4.3.2'],
     line: 4,
     match: 'private final String name;',
     title: 'フィールド宣言',
@@ -48,6 +52,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'ctor',
+    spec: ['2.9.1', '3.8'],
     line: 6,
     match: 'public Greeter(String name)',
     title: 'コンストラクタ',
@@ -59,6 +64,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'assign',
+    spec: ['3.8'],
     line: 7,
     match: 'this.name = name;',
     title: 'フィールドへの代入',
@@ -67,6 +73,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'greet',
+    spec: ['4.6', '4.3.3'],
     line: 10,
     match: 'public String greet()',
     title: 'メソッド宣言',
@@ -75,6 +82,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'concat',
+    spec: ['4.4.10', '4.7.23'],
     line: 11,
     match: 'GREETING + name + "!"',
     title: '文字列の連結',
@@ -87,6 +95,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'main',
+    spec: ['4.3.3'],
     line: 14,
     match: 'public static void main(String[] args)',
     title: 'main メソッド',
@@ -95,6 +104,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'new',
+    spec: ['3.8', '3.4'],
     line: 15,
     match: 'new Greeter("JVM")',
     title: 'オブジェクトの生成',
@@ -103,6 +113,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'out1',
+    spec: ['4.4.2', '6.5.getstatic'],
     line: 16,
     match: 'System.out',
     title: 'static フィールドの読み出し',
@@ -111,6 +122,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'println1',
+    spec: ['3.7'],
     line: 16,
     match: 'println',
     title: 'インスタンスメソッドの呼び出し',
@@ -119,6 +131,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'greet1',
+    spec: ['3.7'],
     line: 16,
     match: 'g.greet()',
     title: '自分のクラスのメソッド呼び出し',
@@ -127,6 +140,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'out2',
+    spec: ['4.4.2', '6.5.getstatic'],
     line: 17,
     match: 'System.out',
     title: '2 回目の System.out',
@@ -135,6 +149,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'println2',
+    spec: ['3.7'],
     line: 17,
     match: 'println',
     title: '2 回目の println',
@@ -143,6 +158,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'greet2',
+    spec: ['3.7'],
     line: 17,
     match: 'g.greet()',
     title: '2 回目の greet()',
@@ -151,6 +167,7 @@ const SPOTS: Spot[] = [
   },
   {
     id: 'hidden',
+    spec: ['4.7.3', '4.7.12', '4.7.10'],
     label: 'ソースに書いていないもの',
     title: 'ソースに書いていないもの',
     note: '属性の名前も Utf8 です。`Code` や `LineNumberTable` はすべてのメソッドで同じエントリを共有します。SourceFile 属性はファイル名を残します。',
@@ -470,6 +487,14 @@ export function mountSource(
         { class: 'effects-head' },
         h('h3', {}, spot.title),
         h('p', { class: 'sub' }, spot.line ? `${spot.line} 行目 · ${showable(spot.match!)}` : 'javac が付け足すもの'),
+        h(
+          'div',
+          { class: 'spec-row' },
+          spot.spec.map((sec) => {
+            const name = sec.split('.')[2];
+            return specLink(sec, name && Number.isNaN(Number(name)) ? `§6.5 ${name}` : `§${sec}`);
+          }),
+        ),
       ),
       h(
         'div',

@@ -34,7 +34,7 @@
         <pre class="hero-dump" aria-hidden="true" data-mount="dump"></pre>
         <div class="hero-glow" aria-hidden="true"></div>
         <div class="hero-content">
-          <p class="eyebrow">JVM 仕様 第4章・第5章</p>
+          <p class="eyebrow">JVM 仕様 Java SE 21 版</p>
           <h1><span class="hero-code">class</span> ファイルを<br />ひらく</h1>
           <p class="lede">
             javac が書き出したバイト列を、JVM 仕様のとおりに1バイトずつ読み解きます。<br />
@@ -44,7 +44,7 @@
             <a class="btn btn-primary" href="#start">読みはじめる</a>
             <a
               class="btn-link"
-              href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html"
+              href="https://docs.oracle.com/javase/specs/jvms/se21/html/index.html"
               target="_blank"
               rel="noopener"
               >JVM 仕様を開く
@@ -81,7 +81,7 @@
 
       <section id="pool" class="chapter" style="--accent: var(--blue)">
         <header class="chapter-head reveal">
-          <p class="eyebrow"><span class="num">02</span>定数プール<span class="spec">§4.4</span></p>
+          <p class="eyebrow"><span class="num">02</span>定数プール<span class="spec">§4.4 · §4.7.23</span></p>
           <h2>名前はすべて<br />ここにある</h2>
           <p class="lede">
             バイトコードもフィールドも、クラス名やメソッド名を直接は持っていません。持っているのは定数プールの<strong>番号</strong>だけ。エントリどうしも番号で指し合い、最後は
@@ -93,7 +93,7 @@
 
       <section id="source" class="chapter" style="--accent: var(--orange)">
         <header class="chapter-head reveal">
-          <p class="eyebrow"><span class="num">03</span>ソースと定数プール<span class="spec">javac</span></p>
+          <p class="eyebrow"><span class="num">03</span>ソースと定数プール<span class="spec">§3 · §4</span></p>
           <h2>1 行のコードが<br />いくつものエントリに</h2>
           <p class="lede">
             <code>g.greet()</code> という短い呼び出しにも、Methodref、Class、NameAndType と 3 つの Utf8
@@ -105,7 +105,7 @@
 
       <section id="runtime" class="chapter" style="--accent: var(--green)">
         <header class="chapter-head reveal">
-          <p class="eyebrow"><span class="num">04</span>実行時の解決<span class="spec">§5.4.3</span></p>
+          <p class="eyebrow"><span class="num">04</span>実行時の解決<span class="spec">§2 · §5 · §6</span></p>
           <h2>番号が<br />実体に変わる瞬間</h2>
           <p class="lede">
             JVM は定数プールの記号参照を、実際のクラスやメソッドに結びつけます。これが<strong>解決</strong>です。一度解決した結果は記録され、次からはそのまま使われます。main
@@ -122,12 +122,16 @@
     <footer class="footer">
       <div class="footer-inner">
         <div>
-          <h3>参照した仕様</h3>
-          <ul>
-            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html" target="_blank" rel="noopener">第4章 The class File Format</a></li>
-            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-5.html" target="_blank" rel="noopener">第5章 Loading, Linking, and Initializing</a></li>
-            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-6.html" target="_blank" rel="noopener">第6章 The Java Virtual Machine Instruction Set</a></li>
+          <h3>参照した仕様 · The Java Virtual Machine Specification, Java SE 21 Edition</h3>
+          <ul class="spec-list">
+            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-2.html" target="_blank" rel="noopener">第2章 JVM の構造</a><span>04 のフレーム、ヒープ、メソッド領域、実行時定数プール</span></li>
+            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-3.html" target="_blank" rel="noopener">第3章 JVM 向けのコンパイル</a><span>03 のソースと命令の対応</span></li>
+            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html" target="_blank" rel="noopener">第4章 class ファイル形式</a><span>01 の構造、02 の定数プール</span></li>
+            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-5.html" target="_blank" rel="noopener">第5章 ロード、リンク、初期化</a><span>04 の解決と初期化</span></li>
+            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-6.html" target="_blank" rel="noopener">第6章 命令セット</a><span>04 で実行する命令</span></li>
+            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-7.html" target="_blank" rel="noopener">第7章 オペコード表</a><span>バイトコードの読み取り</span></li>
           </ul>
+          <p class="spec-skip">第1章は仕様書の導入 (歴史、構成、表記法) なので扱っていません。</p>
         </div>
         <div>
           <h3>サンプル</h3>
