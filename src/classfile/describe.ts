@@ -216,3 +216,32 @@ export function hexBytes(bytes: Uint8Array, start: number, end: number): string 
   for (let i = start; i < end; i++) out.push(hex(bytes[i]));
   return out.join(' ');
 }
+
+export function holdsValue(entry: CpEntry): boolean {
+  return ['Utf8', 'Integer', 'Float', 'Long', 'Double'].includes(entry.kind);
+}
+
+const escapeControls = (text: string) =>
+  text.replace(/[\x00-\x1f]/g, (c) => '\\' + 'u' + c.charCodeAt(0).toString(16).padStart(4, '0'));
+
+export function cpRaw(cf: ClassFile, index: number, labeled = false): string {
+  const entry = cf.pool[index];
+  if (!entry) return '';
+  if (holdsValue(entry)) {
+    const text = escapeControls(cpText(cf, index));
+    return entry.kind === 'Utf8' ? `"${text}"` : text;
+  }
+  return entry.parts
+    .filter((p) => p.name !== 'tag')
+    .map((p) => {
+      const value = p.cp
+        ? `#${p.cp}`
+        : p.name === 'reference_kind'
+          ? (REF_KINDS[entry.referenceKind ?? 0] ?? p.value)
+          : p.name === 'bootstrap_method_attr_index'
+            ? `BootstrapMethods[${p.value}]`
+            : p.value;
+      return labeled ? `${p.name} ${value}` : value;
+    })
+    .join(' · ');
+}

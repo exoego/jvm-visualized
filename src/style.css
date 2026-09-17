@@ -3197,6 +3197,76 @@ code,
   }
 }
 
+.gnode .g3 {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gnode .g2 {
+  font-size: 12px;
+}
+
+.insp-summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 6px 12px;
+  margin: 0;
+}
+
+.insp-summary dt {
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.insp-summary dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.sum-raw {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--text);
+}
+
+.sum-raw .cp-ref {
+  font-size: 13px;
+  padding: 1px 8px;
+}
+
+.sum-sep {
+  color: var(--text-3);
+}
+
+.insp-summary .insp-text {
+  color: var(--text-2);
+  font-size: 12.5px;
+}
+
+.insp-summary .insp-java {
+  margin: 0;
+}
+
+.entry-detail .raw {
+  flex: none;
+  font-family: var(--mono);
+  color: var(--text);
+}
+
+.entry-detail .tx {
+  color: var(--text-3);
+}
+
 /* ---------- Fit each widget into the window ---------- */
 
 @media (min-width: 1081px) and (min-height: 700px) {
@@ -3327,7 +3397,7 @@ code,
 
   .pool-card .graph-wrap {
     min-height: 0;
-    padding-top: 4px;
+    padding-top: 14px;
   }
 
   .pool-card .graph-hint {

@@ -1,4 +1,4 @@
-import { cpText } from '../classfile/describe';
+import { cpRaw, cpText, holdsValue } from '../classfile/describe';
 import type { ClassFile, Instruction, Member } from '../classfile/types';
 import { fill, fitter, h, rich, showable } from '../ui/dom';
 import { nodeText } from './graph';
@@ -436,7 +436,8 @@ export function mountSource(
         fill(
           detail,
           h('span', { class: `kd k-${entry.kind}` }, `#${index} ${entry.kind}`),
-          h('span', { class: 'tx' }, nodeText(cf, index)),
+          h('span', { class: 'raw' }, cpRaw(cf, index)),
+          holdsValue(entry) ? null : h('span', { class: 'tx' }, `→ ${nodeText(cf, index)}`),
           h('span', { class: `badge ${isNew ? 'new' : 'shared'}` }, note),
         );
       chip.addEventListener('pointerenter', show);

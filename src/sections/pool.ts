@@ -1,4 +1,4 @@
-import { cpText, CP_SECTION, hexBytes, prettyDescriptor } from '../classfile/describe';
+import { cpRaw, cpText, CP_SECTION, hexBytes, holdsValue, prettyDescriptor } from '../classfile/describe';
 import type { ClassFile, CpEntry, CpKind, Part } from '../classfile/types';
 import { fitMode, fitter, h, rich, showable, specLink, svg } from '../ui/dom';
 import { hideTooltip, showTooltip } from '../ui/tooltip';
@@ -87,7 +87,8 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
         rect.left + rect.width / 2,
         rect.top,
         h('div', {}, title),
-        entry ? h('div', { class: 'tt-dim' }, showable(cpText(cf, i)).slice(0, 80)) : '',
+        entry ? h('div', { class: 'tt-dim' }, cpRaw(cf, i, true).slice(0, 90)) : '',
+        entry && !holdsValue(entry) ? h('div', { class: 'tt-dim' }, `たどると ${showable(cpText(cf, i)).slice(0, 80)}`) : '',
       );
     });
     tile.addEventListener('pointerleave', hideTooltip);
@@ -207,7 +208,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
           class: `gnode k-${n.kind}${isRoot ? ' root' : ''}${n.ghost ? ' ghost' : ''}`,
           type: 'button',
           style: `left:${n.x}px;top:${n.y}px;width:${NODE_W}px;height:${NODE_H}px;animation-delay:${(n.depth - minDepth) * 90}ms`,
-          title: n.text,
+          title: n.resolved ? `${n.raw} → ${n.resolved}` : n.raw,
         },
         h(
           'span',
@@ -215,7 +216,8 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
           n.index !== undefined ? h('span', { class: 'ix' }, `#${n.index}`) : null,
           n.kind === 'Bootstrap' ? `BootstrapMethods[${n.bootstrap}]` : n.kind,
         ),
-        h('span', { class: 'g2' }, n.text),
+        h('span', { class: 'g2' }, n.raw),
+        n.resolved ? h('span', { class: 'g3' }, `→ ${n.resolved}`) : null,
       );
       if (!isRoot && n.index !== undefined) {
         const target = n.index;
@@ -243,7 +245,8 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
     const height = parseFloat(stage.style.height);
     const fitting = fitMode();
     const availableW = graphWrap.clientWidth || width;
-    const availableH = graphWrap.clientHeight - 12;
+    const pad = getComputedStyle(graphWrap);
+    const availableH = graphWrap.clientHeight - parseFloat(pad.paddingTop) - parseFloat(pad.paddingBottom);
     const scale = Math.min(1, availableW / width, fitting && availableH > 0 ? availableH / height : 1);
     stage.style.transform = `scale(${scale})`;
     stage.style.marginBottom = `${-(1 - scale) * height}px`;
@@ -276,6 +279,17 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
   function renderInspector(entry: CpEntry): void {
     const java = javaForm(cf, entry);
     const text = nodeText(cf, entry.index);
+    const raw = holdsValue(entry)
+      ? [h('span', { class: 'sum-value' }, cpRaw(cf, entry.index))]
+      : entry.parts
+          .filter((p) => p.name !== 'tag')
+          .flatMap((p, k) => [
+            k ? h('span', { class: 'sum-sep' }, '·') : null,
+            p.cp
+              ? h('button', { class: `cp-ref k-${cf.pool[p.cp]?.kind}`, type: 'button', title: p.name, onclick: () => select(p.cp!) }, `#${p.cp}`)
+              : h('span', { class: 'sum-value', title: p.name }, cpRaw(cf, entry.index).split(' · ')[k]),
+          ])
+          .filter((x): x is HTMLElement => x !== null);
     const nodes: Node[] = [
       h(
         'div',
@@ -285,10 +299,14 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
         specLink(CP_SECTION[entry.kind]),
       ),
       h(
-        'div',
-        {},
-        h('p', { class: 'insp-text', title: text }, text),
-        java ? h('p', { class: 'insp-java' }, `Java では ${java}`) : null,
+        'dl',
+        { class: 'insp-summary' },
+        h('dt', {}, '中身'),
+        h('dd', { class: 'sum-raw' }, raw),
+        holdsValue(entry) ? null : h('dt', {}, 'たどると'),
+        holdsValue(entry) ? null : h('dd', { class: 'insp-text', title: text }, text),
+        java ? h('dt', {}, 'Java では') : null,
+        java ? h('dd', { class: 'insp-java' }, java) : null,
       ),
       h('p', { class: 'insp-desc' }, rich(KIND_DESC[entry.kind])),
     ];

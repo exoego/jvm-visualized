@@ -1,6 +1,7 @@
 import {
   accessFlagNames,
   ATTRIBUTE_SECTION,
+  cpRaw,
   cpText,
   hex,
   hexBytes,
@@ -621,7 +622,7 @@ export function mountStructure(root: HTMLElement, cf: ClassFile): void {
             { class: `k-${e.kind}` },
             h('span', { class: 'ix' }, `#${e.index}`),
             h('span', { class: 'kd' }, e.kind),
-            h('span', {}, showable(cpText(cf, e.index))),
+            h('span', {}, cpRaw(cf, e.index)),
           ),
         );
         if (ticker.children.length > 7) ticker.firstElementChild?.remove();

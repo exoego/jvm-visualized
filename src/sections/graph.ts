@@ -1,4 +1,4 @@
-import { cpText } from '../classfile/describe';
+import { cpRaw, cpText, holdsValue } from '../classfile/describe';
 import type { ClassFile, CpKind } from '../classfile/types';
 import { showable } from '../ui/dom';
 
@@ -7,7 +7,8 @@ export interface GraphNode {
   index?: number;
   bootstrap?: number;
   kind: CpKind | 'Bootstrap';
-  text: string;
+  raw: string;
+  resolved?: string;
   depth: number;
   ghost?: boolean;
   x: number;
@@ -29,9 +30,9 @@ export interface Graph {
 }
 
 export const NODE_W = 188;
-export const NODE_H = 52;
+export const NODE_H = 64;
 const GAP_X = 14;
-const GAP_Y = 44;
+const GAP_Y = 40;
 const MAX_GHOSTS = 4;
 
 function bootstrapTable(cf: ClassFile) {
@@ -43,6 +44,12 @@ export function nodeText(cf: ClassFile, index: number): string {
   if (!entry) return '';
   const text = showable(cpText(cf, index));
   return entry.kind === 'Utf8' || entry.kind === 'String' ? `"${text}"` : text;
+}
+
+function describeNode(cf: ClassFile, index: number): Pick<GraphNode, 'raw' | 'resolved'> {
+  const entry = cf.pool[index];
+  if (!entry) return { raw: '(不正な番号)' };
+  return { raw: cpRaw(cf, index), resolved: holdsValue(entry) ? undefined : nodeText(cf, index) };
 }
 
 export function buildGraph(cf: ClassFile, root: number): Graph {
@@ -59,7 +66,7 @@ export function buildGraph(cf: ClassFile, root: number): Graph {
         id,
         index,
         kind: entry?.kind ?? 'Utf8',
-        text: entry ? nodeText(cf, index) : '(不正な番号)',
+        ...describeNode(cf, index),
         depth: 0,
         x: 0,
         y: 0,
@@ -96,7 +103,7 @@ export function buildGraph(cf: ClassFile, root: number): Graph {
             id: bid,
             bootstrap: entry.bootstrapIndex,
             kind: 'Bootstrap',
-            text: `#${bm.ref} と引数 ${bm.args.length} 個`,
+            raw: [`#${bm.ref}`, ...bm.args.map((a) => `#${a}`)].join(' · '),
             depth: 0,
             x: 0,
             y: 0,
@@ -136,7 +143,7 @@ export function buildGraph(cf: ClassFile, root: number): Graph {
       id,
       index: usage.from,
       kind: entry?.kind ?? 'Utf8',
-      text: nodeText(cf, usage.from!),
+      ...describeNode(cf, usage.from!),
       depth: -1,
       ghost: true,
       x: 0,
