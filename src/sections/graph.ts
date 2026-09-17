@@ -4,6 +4,7 @@ import { showable } from '../ui/dom';
 
 export interface GraphNode {
   id: string;
+  key: string;
   index?: number;
   bootstrap?: number;
   kind: CpKind | 'Bootstrap';
@@ -52,7 +53,7 @@ function describeNode(cf: ClassFile, index: number): Pick<GraphNode, 'raw' | 're
   return { raw: cpRaw(cf, index), resolved: holdsValue(entry) ? undefined : nodeText(cf, index) };
 }
 
-export function buildGraph(cf: ClassFile, root: number): Graph {
+export function buildGraph(cf: ClassFile, root: string): Graph {
   const nodes = new Map<string, GraphNode>();
   const edges: GraphEdge[] = [];
   const children = new Map<string, string[]>();
@@ -64,9 +65,29 @@ export function buildGraph(cf: ClassFile, root: number): Graph {
       const entry = cf.pool[index];
       nodes.set(id, {
         id,
+        key: id,
         index,
         kind: entry?.kind ?? 'Utf8',
         ...describeNode(cf, index),
+        depth: 0,
+        x: 0,
+        y: 0,
+      });
+    }
+    return id;
+  };
+
+  const bootstrapNode = (i: number): string => {
+    const id = `bsm:${i}`;
+    if (!nodes.has(id)) {
+      const bm = bsms[i];
+      nodes.set(id, {
+        id,
+        key: id,
+        bootstrap: i,
+        kind: 'Bootstrap',
+        raw: bm ? [`#${bm.ref}`, ...bm.args.map((a) => `#${a}`)].join(' · ') : '(不正な番号)',
+        resolved: bm ? nodeText(cf, bm.ref) : undefined,
         depth: 0,
         x: 0,
         y: 0,
@@ -96,20 +117,7 @@ export function buildGraph(cf: ClassFile, root: number): Graph {
       const entry = cf.pool[node.index];
       if (!entry) return;
       if (entry.bootstrapIndex !== undefined && bsms[entry.bootstrapIndex]) {
-        const bid = `bsm:${entry.bootstrapIndex}`;
-        if (!nodes.has(bid)) {
-          const bm = bsms[entry.bootstrapIndex];
-          nodes.set(bid, {
-            id: bid,
-            bootstrap: entry.bootstrapIndex,
-            kind: 'Bootstrap',
-            raw: [`#${bm.ref}`, ...bm.args.map((a) => `#${a}`)].join(' · '),
-            depth: 0,
-            x: 0,
-            y: 0,
-          });
-        }
-        link(id, bid, 'bootstrap_method_attr_index');
+        link(id, bootstrapNode(entry.bootstrapIndex), 'bootstrap_method_attr_index');
       }
       for (const ref of entry.refs) {
         if (ref.index > 0) link(id, cpNode(ref.index), ref.field);
@@ -118,7 +126,7 @@ export function buildGraph(cf: ClassFile, root: number): Graph {
     for (const child of children.get(id) ?? []) expand(child);
   };
 
-  const rootId = cpNode(root);
+  const rootId = root.startsWith('bsm:') ? bootstrapNode(Number(root.slice(4))) : cpNode(Number(root.slice(3)));
   expand(rootId);
 
   const depth = new Map<string, number>([[rootId, 0]]);
@@ -134,24 +142,34 @@ export function buildGraph(cf: ClassFile, root: number): Graph {
   assign(rootId, 0);
   for (const [id, d] of depth) nodes.get(id)!.depth = d;
 
-  const parents = (cf.usages.get(root) ?? []).filter((u) => u.from !== undefined);
-  const ghostIds: string[] = [];
-  for (const usage of parents.slice(0, MAX_GHOSTS)) {
-    const id = `ghost:${usage.from}`;
-    const entry = cf.pool[usage.from!];
+  const parents: { from: number; field: string }[] = [];
+  if (rootId.startsWith('bsm:')) {
+    const i = Number(rootId.slice(4));
+    cf.pool.forEach((e) => {
+      if (e?.bootstrapIndex === i) parents.push({ from: e.index, field: 'bootstrap_method_attr_index' });
+    });
+  } else {
+    const index = Number(rootId.slice(3));
+    for (const usage of cf.usages.get(index) ?? []) {
+      if (usage.from === undefined) continue;
+      const field = cf.pool[usage.from]?.refs.find((r) => r.index === index)?.field ?? '';
+      parents.push({ from: usage.from, field });
+    }
+  }
+  for (const parent of parents.slice(0, MAX_GHOSTS)) {
+    const id = `ghost:${parent.from}`;
     nodes.set(id, {
       id,
-      index: usage.from,
-      kind: entry?.kind ?? 'Utf8',
-      ...describeNode(cf, usage.from!),
+      key: `cp:${parent.from}`,
+      index: parent.from,
+      kind: cf.pool[parent.from]?.kind ?? 'Utf8',
+      ...describeNode(cf, parent.from),
       depth: -1,
       ghost: true,
       x: 0,
       y: 0,
     });
-    const field = entry?.refs.find((r) => r.index === root)?.field ?? '';
-    edges.push({ from: id, to: rootId, label: field, ghost: true });
-    ghostIds.push(id);
+    edges.push({ from: id, to: rootId, label: parent.field, ghost: true });
   }
 
   const rows = new Map<number, GraphNode[]>();

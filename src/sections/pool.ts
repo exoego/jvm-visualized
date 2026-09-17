@@ -64,8 +64,8 @@ function partHex(cf: ClassFile, part: Part): string {
 export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): { select: (index: number) => void } {
   const count = cf.poolCount;
   const tiles: HTMLButtonElement[] = [];
-  let selected = 0;
-  let trail: number[] = [];
+  let selected = '';
+  let trail: string[] = [];
 
   const strip = h('div', { class: 'strip', style: `--n:${count}`, role: 'listbox', 'aria-label': '定数プール' });
   for (let i = 0; i < count; i++) {
@@ -170,8 +170,8 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
     });
   };
 
-  function renderGraph(index: number): void {
-    const g = buildGraph(cf, index);
+  function renderGraph(key: string): void {
+    const g = buildGraph(cf, key);
     const nodeById = new Map(g.nodes.map((n) => [n.id, n]));
     const minDepth = Math.min(...g.nodes.map((n) => n.depth));
     const stage = h('div', { class: 'graph', style: `width:${g.width}px;height:${g.height}px` });
@@ -201,7 +201,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
     }
 
     for (const n of g.nodes) {
-      const isRoot = n.id === `cp:${index}`;
+      const isRoot = n.id === key;
       const el = h(
         'button',
         {
@@ -219,18 +219,15 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
         h('span', { class: 'g2' }, n.raw),
         n.resolved ? h('span', { class: 'g3' }, `→ ${n.resolved}`) : null,
       );
-      if (!isRoot && n.index !== undefined) {
-        const target = n.index;
+      if (!isRoot) {
         el.addEventListener('click', () => {
-          if (n.ghost) select(target);
+          if (n.ghost) open(n.key);
           else {
-            const at = trail.indexOf(index);
-            trail = [...trail.slice(0, at + 1), target];
-            select(target, false);
+            const at = trail.indexOf(key);
+            trail = [...trail.slice(0, at + 1), n.key];
+            open(n.key, false);
           }
         });
-      } else if (n.kind === 'Bootstrap') {
-        el.style.cursor = 'default';
       }
       graphNodes.set(n.id, el);
       stage.append(el);
@@ -258,18 +255,16 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
     if (stage) fit(stage);
   }).observe(graphWrap);
 
+  const keyLabel = (key: string) =>
+    key.startsWith('bsm:') ? `BootstrapMethods[${key.slice(4)}]` : `#${key.slice(3)} ${cf.pool[Number(key.slice(3))]?.kind ?? ''}`;
+
   function renderCrumbs(): void {
     crumbs.replaceChildren(
-      ...trail.flatMap((index, i) => {
-        const entry = cf.pool[index];
-        const btn = h(
-          'button',
-          { type: 'button', 'aria-current': String(index === selected) },
-          `#${index} ${entry?.kind ?? ''}`,
-        );
+      ...trail.flatMap((key, i) => {
+        const btn = h('button', { type: 'button', 'aria-current': String(key === selected) }, keyLabel(key));
         btn.addEventListener('click', () => {
           trail = trail.slice(0, i + 1);
-          select(index, false);
+          open(key, false);
         });
         return i === 0 ? [btn] : [h('span', {}, '›'), btn];
       }),
@@ -405,22 +400,121 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
     inspectorFit.update();
   }
 
-  function select(index: number, resetTrail = true): void {
-    const entry = cf.pool[index];
-    if (!entry) return;
-    selected = index;
-    if (resetTrail || !trail.includes(index)) {
-      if (resetTrail) trail = [index];
-    }
+  function renderBootstrapInspector(i: number): void {
+    const attrIndex = cf.attributes.findIndex((a) => a.name === 'BootstrapMethods');
+    const attr = cf.attributes[attrIndex];
+    const bm = attr?.bootstrapMethods?.[i];
+    if (!attr || !bm) return;
+    const prefix = `bootstrap_methods[${i}].`;
+    const parts = attr.parts.filter((p) => p.name.startsWith(prefix));
+    const method = nodeText(cf, bm.ref);
+    const args = bm.args.map((a) => nodeText(cf, a)).join(', ');
+    const ref = (index: number) =>
+      h('button', { class: `cp-ref k-${cf.pool[index]?.kind}`, type: 'button', onclick: () => select(index) }, `#${index}`);
+
+    const groups = parts.map((part) => {
+      const group = h(
+        'div',
+        { class: 'bgroup' },
+        h('span', { class: 'hx' }, partHex(cf, part)),
+        h('span', { class: 'lb' }, part.name.slice(prefix.length)),
+        part.cp ? ref(part.cp) : h('span', { class: 'vv' }, part.value),
+      );
+      if (part.cp) {
+        group.addEventListener('pointerenter', () => highlight(part.cp, true));
+        group.addEventListener('pointerleave', () => highlight(part.cp, false));
+      }
+      return group;
+    });
+
+    const users = cf.pool.filter((e): e is CpEntry => e?.bootstrapIndex === i);
+    const attrSize = attr.span.end - attr.span.start;
+
+    inspectorInner.replaceChildren(
+      h(
+        'div',
+        { class: 'insp-head' },
+        h('span', { class: 'insp-index small' }, `BootstrapMethods[${i}]`),
+        h('span', { class: 'chip k-Bootstrap' }, h('i', { class: 'dot' }), '属性の中の表'),
+        specLink('4.7.23'),
+      ),
+      h(
+        'dl',
+        { class: 'insp-summary' },
+        h('dt', {}, '中身'),
+        h(
+          'dd',
+          { class: 'sum-raw' },
+          ref(bm.ref),
+          bm.args.length ? h('span', { class: 'sum-sep' }, '·') : null,
+          bm.args.length ? h('span', { class: 'sum-value' }, '引数') : null,
+          bm.args.map((a) => ref(a)),
+        ),
+        h('dt', {}, 'メソッド'),
+        h('dd', { class: 'insp-text', title: method }, method),
+        bm.args.length ? h('dt', {}, '引数') : null,
+        bm.args.length ? h('dd', { class: 'insp-text', title: args }, args) : null,
+      ),
+      h(
+        'p',
+        { class: 'insp-desc' },
+        rich('定数プールではなく、class ファイルの末尾にある **BootstrapMethods 属性**の中の表の 1 行です。だから `#` の番号はありません。invokedynamic が初めて実行されるとき、JVM はこの行のメソッドハンドルを静的引数と一緒に呼び出して、呼び出し先を決めます (§5.4.3.6)。'),
+      ),
+      h(
+        'div',
+        { class: 'insp-section' },
+        h('h4', {}, `バイト列 · offset ${bm.span.start} · ${bm.span.end - bm.span.start} B`),
+        h('div', { class: 'bgroups' }, groups),
+      ),
+      h(
+        'div',
+        { class: 'callout', style: '--c: var(--pink)' },
+        h(
+          'div',
+          {},
+          rich(
+            `この表は \`attributes[${attrIndex}]\` の BootstrapMethods 属性 (offset ${attr.span.start} · ${attrSize} B) の中にあります。属性の先頭は、名前 \`#${attr.nameIndex}\`、長さ、行数の順に並び、その後ろに各行が続きます。`,
+          ),
+        ),
+      ),
+      h(
+        'div',
+        { class: 'insp-section' },
+        h('h4', {}, `この行を使っている場所 · ${users.length}`),
+        users.length
+          ? h(
+              'div',
+              { class: 'uchips' },
+              users.map((e) =>
+                h('button', { class: 'uchip link', type: 'button', title: '定数プール', onclick: () => select(e.index) }, `#${e.index} ${e.kind} の bootstrap_method_attr_index`),
+              ),
+            )
+          : h('p', { class: 'insp-desc' }, 'どこからも参照されていません。'),
+      ),
+    );
+    inspectorFit.update();
+  }
+
+  function open(key: string, resetTrail = true): void {
+    const cpIndex = key.startsWith('cp:') ? Number(key.slice(3)) : undefined;
+    const bsmIndex = key.startsWith('bsm:') ? Number(key.slice(4)) : undefined;
+    if (cpIndex !== undefined && !cf.pool[cpIndex]) return;
+    selected = key;
+    if (resetTrail) trail = [key];
     const path = new Set(trail);
     tiles.forEach((t, i) => {
-      t.classList.toggle('sel', i === index);
-      t.classList.toggle('path', i !== index && path.has(i));
+      t.classList.toggle('sel', `cp:${i}` === key);
+      t.classList.toggle('path', `cp:${i}` !== key && path.has(`cp:${i}`));
     });
-    pickButtons.forEach(({ btn, index: i }) => btn.classList.toggle('on', i === index && trail.length === 1));
+    pickButtons.forEach(({ btn, index: i }) => btn.classList.toggle('on', `cp:${i}` === key && trail.length === 1));
     renderCrumbs();
-    renderGraph(index);
-    renderInspector(entry);
+    renderGraph(key);
+    if (cpIndex !== undefined) renderInspector(cf.pool[cpIndex]!);
+    else if (bsmIndex !== undefined) renderBootstrapInspector(bsmIndex);
+  }
+
+  function select(index: number, resetTrail = true): void {
+    open(`cp:${index}`, resetTrail);
   }
 
   const start = initial ?? PICKS[0].find(cf) ?? 1;

@@ -3267,6 +3267,10 @@ code,
   color: var(--text-3);
 }
 
+.insp-index.small {
+  font-size: 22px;
+}
+
 /* ---------- Fit each widget into the window ---------- */
 
 @media (min-width: 1081px) and (min-height: 700px) {
