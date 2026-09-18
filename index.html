@@ -35,7 +35,7 @@
         <div class="hero-glow" aria-hidden="true"></div>
         <div class="hero-content">
           <p class="eyebrow">JVM 仕様 Java SE 21 版</p>
-          <h1><span class="hero-code">class</span> ファイルを<br />ひらく</h1>
+          <h1><span class="hero-code">class</span> ファイルをひらく</h1>
           <p class="lede">
             javac が書き出したバイト列を、JVM 仕様のとおりに1バイトずつ読み解きます。<br />
             定数プールに何が入り、実行時にどう使われるのかを、アニメーションで追います。
@@ -58,7 +58,7 @@
       <section id="start" class="chapter" style="--accent: var(--text-2)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">00</span>題材<span class="spec">Greeter.java</span></p>
-          <h2>すべては<br />この <span data-bind="lines"></span> 行から</h2>
+          <h2>すべてはこの <span data-bind="lines"></span> 行から</h2>
           <p class="lede">
             題材は、名前を受け取ってあいさつを返すだけの小さなクラス Greeter です。javac でコンパイルすると、<span data-bind="size"></span>
             バイトの Greeter.class ができます。このページでは、そのバイト列を JVM 仕様のとおりに読んでいきます。
@@ -70,7 +70,7 @@
       <section id="structure" class="chapter" style="--accent: var(--cyan)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">01</span>ClassFile 構造<span class="spec">§4.1</span></p>
-          <h2>区切りのない<br /><span data-bind="size"></span> バイト</h2>
+          <h2>区切りのない <span data-bind="size"></span> バイト</h2>
           <p class="lede">
             Greeter.class には区切り文字も目次もありません。先頭から順に読み、読んだ値から次の長さを知る。JVM
             と同じやり方で、端から端まで読んでみます。
@@ -82,7 +82,7 @@
       <section id="pool" class="chapter" style="--accent: var(--blue)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">02</span>定数プール<span class="spec">§4.4 · §4.7.23</span></p>
-          <h2>名前はすべて<br />ここにある</h2>
+          <h2>名前はすべてここにある</h2>
           <p class="lede">
             バイトコードもフィールドも、クラス名やメソッド名を直接は持っていません。持っているのは定数プールの<strong>番号</strong>だけ。エントリどうしも番号で指し合い、最後は
             Utf8 の文字列にたどり着きます。
@@ -94,7 +94,7 @@
       <section id="source" class="chapter" style="--accent: var(--orange)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">03</span>ソースと定数プール<span class="spec">§3 · §4</span></p>
-          <h2>1 行のコードが<br />いくつものエントリに</h2>
+          <h2>1 行のコードがいくつものエントリに</h2>
           <p class="lede">
             <code>g.greet()</code> という短い呼び出しにも、Methodref、Class、NameAndType と 3 つの Utf8
             が要ります。そして javac は、同じ内容のエントリを 1 つにまとめます。コードを選んで、何が生まれたかを見てください。
@@ -106,13 +106,14 @@
       <section id="runtime" class="chapter" style="--accent: var(--green)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">04</span>実行時の解決<span class="spec">§2 · §5 · §6</span></p>
-          <h2>番号が<br />実体に変わる瞬間</h2>
+          <h2>番号が実体に変わる瞬間</h2>
           <p class="lede">
             JVM は定数プールの記号参照を、実際のクラスやメソッドに結びつけます。これが<strong>解決</strong>です。一度解決した結果は記録され、次からはそのまま使われます。main
             を 1 命令ずつ実行して、その様子を追います。
           </p>
           <p class="note">
-            仕様は、解決をいつ行うかを実装に任せています (§5.4)。ここでは、命令が初めてエントリを使うときに解決する方式で進めます。
+            フレームはスレッドごと、ヒープとメソッド領域はすべてのスレッドで共有します。実行時定数プールはメソッド領域の中にあります
+            (§2.5)。解決をいつ行うかは実装に任されているので (§5.4)、ここでは命令が初めてエントリを使うときに解決する方式で進めます。
           </p>
         </header>
         <div class="stage reveal" data-mount="runtime"></div>

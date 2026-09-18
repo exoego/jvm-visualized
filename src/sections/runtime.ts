@@ -135,19 +135,14 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
     'div',
     { class: 'runtime' },
     h('div', { class: 'rt-col' }, panel('grow bc-panel', 'バイトコード', null, seg, bcList)),
+    h('div', { class: 'rt-col' }, panel('grow', '実行時定数プール', '2.5.5', stats, rcpList)),
     h(
       'div',
       { class: 'rt-col' },
       panel('grow', 'Java スタック · フレーム', '2.6', '上が実行中', framesEl),
       panel('classes-panel', 'メソッド領域 · クラス', '2.5.4', null, classesEl),
     ),
-    h(
-      'div',
-      { class: 'rt-col' },
-      panel('grow', 'ヒープ', '2.5.3', null, heapEl),
-      panel('console-panel', '標準出力', null, null, consoleEl),
-    ),
-    h('div', { class: 'rt-col' }, panel('grow', '実行時定数プール', '2.5.5', stats, rcpList)),
+    h('div', { class: 'rt-col' }, panel('grow', 'ヒープ', '2.5.3', null, heapEl)),
   );
 
   const player = new Player({
@@ -163,7 +158,9 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
     speeds: [1, 2, 0.5],
   });
 
-  const wrap = h('div', { class: 'rt-wrap' }, caption, grid, links);
+  // 標準出力は JVM の中の状態ではなくプログラムの外に出た結果なので、内部を並べたグリッドから外して解説の隣に置く
+  const head = h('div', { class: 'rt-head' }, panel('console-panel', '標準出力', null, null, consoleEl), caption);
+  const wrap = h('div', { class: 'rt-wrap' }, head, grid, links);
   root.append(h('div', { class: 'card fit runtime-card', tabindex: -1 }, wrap, player.el));
   player.bindKeys(root);
 
@@ -175,18 +172,44 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
     return h('span', { class: `value v-${type}${enter ? ' enter' : ''}`, title: label }, label);
   }
 
-  function renderCaption(s: Snapshot): void {
-    captionTitle.replaceChildren(
+  function fillCaption(target: { title: HTMLElement; body: HTMLElement; specs: HTMLElement }, s: Snapshot): void {
+    target.title.replaceChildren(
       h('span', { class: `chip tone-${s.tone}` }, h('i', { class: 'dot' }), TONE_LABEL[s.tone]),
       h('span', {}, rich(s.title)),
     );
-    captionBody.replaceChildren(rich(s.body));
-    captionSpecs.replaceChildren(
+    target.body.replaceChildren(rich(s.body));
+    target.specs.replaceChildren(
       ...s.specs.map((sec) => {
         const name = sec.split('.')[2];
         return specLink(sec, name && Number.isNaN(Number(name)) ? `§6.5 ${name.replace('_n', '_<n>')}` : `§${sec}`);
       }),
     );
+  }
+
+  function renderCaption(s: Snapshot): void {
+    fillCaption({ title: captionTitle, body: captionBody, specs: captionSpecs }, s);
+  }
+
+  function lockHeadHeight(): void {
+    const probeTitle = h('h3', { class: 'caption-title' });
+    const probeSpecs = h('div', { class: 'caption-specs' });
+    const probeBody = h('p', { class: 'caption-body' });
+    head.style.height = '';
+    const probe = h(
+      'div',
+      { class: 'panel caption', style: `position:absolute;visibility:hidden;left:0;top:0;height:auto;width:${caption.clientWidth}px` },
+      probeTitle,
+      probeSpecs,
+      probeBody,
+    );
+    wrap.append(probe);
+    let tallest = 0;
+    for (const s of snapshots) {
+      fillCaption({ title: probeTitle, body: probeBody, specs: probeSpecs }, s);
+      tallest = Math.max(tallest, probe.offsetHeight);
+    }
+    probe.remove();
+    head.style.height = `${tallest}px`;
   }
 
   function renderBytecode(s: Snapshot): void {
@@ -231,9 +254,10 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
               : h('div', { class: 'slot empty' }),
           );
         }
+        const known = prev?.frames[i]?.method === f.method;
         return h(
           'div',
-          { class: `frame${top ? ' top' : ''}`, 'data-key': `frame:${i}` },
+          { class: `frame${top ? ' top' : ''}`, 'data-key': `frame:${i}`, style: known ? 'animation:none' : '' },
           h(
             'div',
             { class: 'frame-head' },
@@ -521,9 +545,12 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
   new ResizeObserver(() => {
     const size = `${wrap.clientWidth}x${wrap.clientHeight}`;
     if (size === lastSize) return;
+    const widthChanged = !lastSize.startsWith(`${wrap.clientWidth}x`);
     lastSize = size;
+    if (widthChanged) lockHeadHeight();
     fitters.forEach((f) => f.update());
     drawLinks(snapshots[current], false);
   }).observe(wrap);
   render();
+  lockHeadHeight();
 }
