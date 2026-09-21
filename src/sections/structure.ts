@@ -198,7 +198,7 @@ function explain(cf: ClassFile, item: TopItem): Explanation {
       const nameRef = entry?.refs[0]?.index;
       return scalar(
         `#${cf.thisClass}`,
-        `このクラス自身。ここにあるのは名前の文字列ではなく、定数プールの**番号**です。\`#${cf.thisClass}\` は Class エントリで、その name_index \`#${nameRef}\` の Utf8 に \`${cpText(cf, cf.thisClass)}\` が入っています。`,
+        `このクラス自身。ここにあるのは名前の文字列ではなく、定数プールの**番号**です。\`#${cf.thisClass}\` は Class エントリで、その name_index \`#${nameRef}\` の Utf8 に \`${cpText(cf, cf.thisClass)}\` が入っています。この項目が定数プールより後ろにあるのは、ここが番号で**指す側**だからです。先に定数プールを読んであるので、番号に出会った時点で中身を引けます。`,
         '4.1',
         `#${cf.thisClass} ${cpText(cf, cf.thisClass)}`,
       );
