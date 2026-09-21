@@ -25,6 +25,7 @@
           <li><a href="#pool"><span class="num">02</span><span class="txt">定数プール</span></a></li>
           <li><a href="#source"><span class="num">03</span><span class="txt">ソース</span></a></li>
           <li><a href="#runtime"><span class="num">04</span><span class="txt">実行時</span></a></li>
+          <li><a href="#linkage"><span class="num">05</span><span class="txt">LinkageError</span></a></li>
         </ul>
       </div>
     </nav>
@@ -118,6 +119,22 @@
         </header>
         <div class="stage reveal" data-mount="runtime"></div>
       </section>
+
+      <section id="linkage" class="chapter" style="--accent: var(--red)">
+        <header class="chapter-head reveal">
+          <p class="eyebrow"><span class="num">05</span>LinkageError<span class="spec">§5.4.3</span></p>
+          <h2>名前で指すからあとで壊れる</h2>
+          <p class="lede">
+            class ファイルに残るのは名前だけです。コンパイル時にあったメソッドが実行時のクラスパスから消えていても、JVM
+            はその命令を実行するまで気づきません。ライブラリのバージョンが入れ替わったときに起きる LinkageError を、実際に起こして追います。
+          </p>
+          <p class="note">
+            題材は別の 3 つの class ファイルです。<code>foo/Foo</code> は <code>bar/Bar</code> の 1.0
+            に対してコンパイルし、実行時には 2.0 を置いています。1.0 の <code>buz()</code> は、2.0 では <code>buzz()</code> に変わっています。
+          </p>
+        </header>
+        <div class="stage reveal" data-mount="linkage"></div>
+      </section>
     </main>
 
     <footer class="footer">
@@ -139,6 +156,7 @@
           <ul>
             <li><code>samples/Greeter.java</code></li>
             <li data-mount="footer-meta"></li>
+            <li><code>samples/linkage/</code> · 05 の foo/Foo と bar/Bar 1.0 / 2.0</li>
             <li>画面の値はすべて、実際の class ファイルをこのページで解析したものです。</li>
           </ul>
         </div>

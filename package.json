@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "sample": "javac --release 21 -d samples samples/Greeter.java"
+    "sample": "javac --release 21 -d samples samples/Greeter.java",
+    "sample:linkage": "rm -rf samples/linkage/classes && javac -d samples/linkage/classes/bar-v1 samples/linkage/bar-v1/bar/Bar.java && javac -d samples/linkage/classes/bar-v2 samples/linkage/bar-v2/bar/Bar.java && javac -cp samples/linkage/classes/bar-v1 -d samples/linkage/classes/foo samples/linkage/foo/foo/Foo.java && javac -cp samples/linkage/classes/foo:samples/linkage/classes/bar-v1 -d samples/linkage/classes/app samples/linkage/app/Main.java"
   },
   "devDependencies": {
     "typescript": "^7.0.2",

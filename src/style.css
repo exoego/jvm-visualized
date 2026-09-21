@@ -2435,7 +2435,8 @@ code,
     min-height: 0;
   }
 
-  .runtime {
+  .runtime,
+  .linkage {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
@@ -2487,7 +2488,8 @@ code,
     grid-template-columns: repeat(21, minmax(0, 1fr));
   }
 
-  .runtime {
+  .runtime,
+  .linkage {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -3507,6 +3509,145 @@ code,
   }
 }
 
+/* ---------- 05 LinkageError ---------- */
+
+.linkage {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 12px;
+}
+
+.lk-head {
+  margin-bottom: 12px;
+}
+
+.mlist {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-2);
+  transition: background 0.4s var(--ease), color 0.4s;
+}
+
+.mrow.had {
+  background: rgba(48, 209, 88, 0.16);
+  color: var(--text);
+}
+
+.mrow.gone {
+  background: rgba(255, 69, 58, 0.18);
+  color: var(--red);
+  animation: pop 0.5s var(--ease) both;
+}
+
+.mname {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mtag {
+  flex: none;
+  font-family: var(--font);
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.mrow.had .mtag {
+  color: var(--green);
+}
+
+.mrow.gone .mtag {
+  color: var(--red);
+}
+
+.rcp.failed .state {
+  color: #000;
+  background: var(--red);
+}
+
+.rcp.failed .rt {
+  color: var(--red);
+}
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.tnode {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tnode.d1 {
+  margin-left: 12px;
+}
+
+.tnode.d2 {
+  margin-left: 24px;
+}
+
+.tnode.here {
+  background: rgba(255, 69, 58, 0.18);
+  color: var(--red);
+}
+
+.console .cmd {
+  color: var(--text-3);
+}
+
+.console .err {
+  color: var(--red);
+}
+
+.linkage .console {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.check-note {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-2);
+  transition: background 0.4s var(--ease);
+}
+
+.check-note p {
+  margin: 0;
+}
+
+.check-note.on {
+  background: rgba(48, 209, 88, 0.12);
+}
+
+.tone-error {
+  --c: var(--red);
+}
+
 /* ---------- Fit each widget into the window ---------- */
 
 @media (min-width: 1081px) and (min-height: 700px) {
@@ -3554,7 +3695,8 @@ code,
   .structure-card .structure,
   .pool-card .pool-main,
   .source-card .source,
-  .runtime-card .runtime {
+  .runtime-card .runtime,
+  .linkage-card .linkage {
     flex: 1;
     min-height: 0;
     grid-template-rows: minmax(0, 1fr);
@@ -3685,12 +3827,17 @@ code,
     min-height: 0;
   }
 
+  .linkage-card .lk-head {
+    flex: none;
+  }
+
   .runtime-card .rt-head {
     flex: none;
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr) minmax(0, 1.15fr) minmax(0, 0.85fr);
   }
 
-  .runtime-card .caption {
+  .runtime-card .caption,
+  .linkage-card .caption {
     flex: none;
     padding: 12px 16px;
   }
@@ -3699,11 +3846,13 @@ code,
     padding: 12px 12px;
   }
 
-  .runtime-card .caption-title {
+  .runtime-card .caption-title,
+  .linkage-card .caption-title {
     font-size: 18px;
   }
 
-  .runtime-card .caption-body {
+  .runtime-card .caption-body,
+  .linkage-card .caption-body {
     font-size: 13.5px;
     line-height: 1.65;
   }
@@ -3712,27 +3861,32 @@ code,
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr) minmax(0, 1.15fr) minmax(0, 0.85fr);
   }
 
-  .runtime-card .rt-col > .panel {
+  .runtime-card .rt-col > .panel,
+  .linkage-card .rt-col > .panel {
     display: flex;
     flex-direction: column;
     min-height: 0;
     padding: 12px 12px;
   }
 
-  .runtime-card .rt-col > .panel.grow {
+  .runtime-card .rt-col > .panel.grow,
+  .linkage-card .rt-col > .panel.grow {
     flex: 1 1 0;
   }
 
-  .runtime-card .rt-col > .panel:not(.grow) {
+  .runtime-card .rt-col > .panel:not(.grow),
+  .linkage-card .rt-col > .panel:not(.grow) {
     flex: none;
   }
 
-  .runtime-card .rt-col > .panel:not(.grow) .fit-box {
+  .runtime-card .rt-col > .panel:not(.grow) .fit-box,
+  .linkage-card .rt-col > .panel:not(.grow) .fit-box {
     flex: none;
     overflow: visible;
   }
 
-  .runtime-card .panel-title {
+  .runtime-card .panel-title,
+  .linkage-card .panel-title {
     margin-bottom: 8px;
   }
 

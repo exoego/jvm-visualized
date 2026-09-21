@@ -17,6 +17,7 @@ target/
 # JVM
 *.class
 !samples/*.class
+!samples/linkage/classes/**/*.class
 *.log
 hs_err_pid*
 

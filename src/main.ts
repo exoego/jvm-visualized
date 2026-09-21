@@ -1,8 +1,12 @@
 import './style.css';
 import classUrl from '../samples/Greeter.class?url';
+import barNewUrl from '../samples/linkage/classes/bar-v2/bar/Bar.class?url';
+import barOldUrl from '../samples/linkage/classes/bar-v1/bar/Bar.class?url';
+import fooUrl from '../samples/linkage/classes/foo/foo/Foo.class?url';
 import javaSource from '../samples/Greeter.java?raw';
 import { hexBytes } from './classfile/describe';
 import { ClassFormatError, parseClassFile } from './classfile/parse';
+import { mountLinkage } from './sections/linkage';
 import { mountPool } from './sections/pool';
 import { mountRuntime } from './sections/runtime';
 import { mountSource } from './sections/source';
@@ -10,6 +14,11 @@ import { mountStart } from './sections/start';
 import { mountStructure } from './sections/structure';
 import { h, mount } from './ui/dom';
 import { initReveal, trackNav } from './ui/reveal';
+
+async function load(url: string) {
+  const response = await fetch(url);
+  return parseClassFile(new Uint8Array(await response.arrayBuffer()));
+}
 
 async function main(): Promise<void> {
   const response = await fetch(classUrl);
@@ -41,6 +50,8 @@ async function main(): Promise<void> {
     document.getElementById('pool')?.scrollIntoView({ behavior: 'smooth' });
   });
   mountRuntime(mount('runtime')!, cf);
+  const [foo, barOld, barNew] = await Promise.all([load(fooUrl), load(barOldUrl), load(barNewUrl)]);
+  mountLinkage(mount('linkage')!, foo, barOld, barNew);
 
   initReveal();
   trackNav();
