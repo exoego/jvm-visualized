@@ -1,42 +1,59 @@
 :root {
   color-scheme: dark;
 
-  --bg: #000;
-  --surface: #0f0f10;
-  --panel: #161618;
-  --panel-2: #1d1d1f;
-  --panel-3: #2a2a2d;
-  --hairline: rgba(255, 255, 255, 0.08);
-  --hairline-2: rgba(255, 255, 255, 0.14);
-  --text: #f5f5f7;
-  --text-2: #a1a1a6;
-  --text-3: #6e6e73;
-  --link: #2997ff;
+  --bg: #16161b;
+  --surface: #1c1c22;
+  --panel: #232329;
+  --panel-2: #2b2b33;
+  --panel-3: #35353f;
+  --hairline: rgba(236, 229, 213, 0.14);
+  --hairline-2: rgba(236, 229, 213, 0.26);
+  --text: #ece5d5;
+  --text-2: #b4ae9f;
+  --text-3: #8a8474;
+  --link: #f0902a;
 
-  --blue: #0a84ff;
-  --green: #30d158;
-  --orange: #ff9f0a;
-  --pink: #ff375f;
-  --purple: #bf5af2;
-  --indigo: #7d7aff;
-  --cyan: #64d2ff;
-  --yellow: #ffd60a;
-  --mint: #63e6e2;
-  --brown: #c9a47a;
-  --gray: #98989d;
-  --red: #ff453a;
+  --blue: #4477cc;
+  --green: #3f9e6b;
+  --orange: #f0801f;
+  --pink: #d0348e;
+  --purple: #4f2f9e;
+  --indigo: #6a4fb0;
+  --cyan: #3aa6b5;
+  --yellow: #f2b705;
+  --mint: #7fb69a;
+  --brown: #a9793f;
+  --gray: #8d8879;
+  --red: #e13327;
 
-  --radius-xl: 32px;
-  --radius-l: 22px;
-  --radius-m: 16px;
-  --radius-s: 10px;
+  --ink: #131317;
+  --tape: #ece3ce;
+  --tape-2: #cfc4aa;
+
+  --radius-xl: 3px;
+  --radius-l: 3px;
+  --radius-m: 2px;
+  --radius-s: 2px;
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-io: cubic-bezier(0.65, 0, 0.35, 1);
 
-  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue',
-    'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  --font: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', -apple-system,
+    BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  --display: 'Arial Black', 'Helvetica Neue', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  --label: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   --mono: 'SF Mono', ui-monospace, Menlo, Monaco, 'Cascadia Mono', monospace;
+
+  --band: linear-gradient(
+    180deg,
+    var(--purple) 0 25%,
+    var(--pink) 25% 50%,
+    var(--red) 50% 75%,
+    var(--orange) 75% 100%
+  );
+
+  --drop: 5px 5px 0 rgba(0, 0, 0, 0.55);
+  --drop-sm: 3px 3px 0 rgba(0, 0, 0, 0.5);
 
   --gutter: 24px;
   --max: 1180px;
@@ -462,7 +479,7 @@ code,
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
-  color: var(--c);
+  color: var(--c-lit, var(--c));
   background: color-mix(in srgb, var(--c) 16%, transparent);
 }
 
@@ -893,7 +910,7 @@ code,
 .reading-value {
   margin-top: 6px;
   font-size: 15px;
-  color: var(--c);
+  color: var(--c-lit, var(--c));
   font-weight: 500;
 }
 
@@ -930,7 +947,7 @@ code,
   font-family: var(--mono);
   font-size: 15px;
   letter-spacing: 0.04em;
-  color: var(--c);
+  color: var(--c-lit, var(--c));
   white-space: nowrap;
 }
 
@@ -988,7 +1005,7 @@ code,
 
 .ticker .kd {
   width: 108px;
-  color: var(--c);
+  color: var(--c-lit, var(--c));
   flex: none;
 }
 
@@ -1281,7 +1298,7 @@ code,
   gap: 8px;
   font-size: 11px;
   font-weight: 600;
-  color: var(--c);
+  color: var(--c-lit, var(--c));
 }
 
 .gnode .g1 .ix {
@@ -1471,7 +1488,7 @@ code,
   width: 44px;
   padding-right: 16px;
   text-align: right;
-  color: #48484a;
+  color: var(--text-3);
   user-select: none;
 }
 
@@ -1987,7 +2004,7 @@ code,
   font-family: var(--mono);
   font-size: 12px;
   font-weight: 600;
-  color: var(--c);
+  color: var(--c-lit, var(--c));
 }
 
 .rcp-sym {
@@ -2933,7 +2950,7 @@ code,
   flex: none;
   font-family: var(--mono);
   font-weight: 600;
-  color: var(--c);
+  color: var(--c-lit, var(--c));
 }
 
 .entry-detail .tx {
@@ -3179,7 +3196,7 @@ code,
 
 .obj-type {
   flex: none;
-  color: var(--c);
+  color: var(--c-lit, var(--c));
   font-weight: 600;
 }
 
@@ -3902,48 +3919,731 @@ code,
 
 /* ---------- Palette (kept last so it wins over component defaults) ---------- */
 
-.k-Utf8 { --c: var(--gray); }
-.k-Class { --c: var(--blue); }
-.k-String { --c: var(--yellow); }
+.k-Utf8 { --c: var(--gray); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--gray) 58%, #f0e9db); }
+.k-Class { --c: var(--blue); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--blue) 58%, #f0e9db); }
+.k-String { --c: var(--yellow); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--yellow) 58%, #f0e9db); }
 .k-Integer,
 .k-Float,
 .k-Long,
-.k-Double { --c: var(--mint); }
-.k-Fieldref { --c: var(--green); }
-.k-Methodref { --c: var(--orange); }
-.k-InterfaceMethodref { --c: #ffb35c; }
-.k-NameAndType { --c: var(--purple); }
-.k-MethodHandle { --c: var(--cyan); }
-.k-MethodType { --c: var(--indigo); }
+.k-Double { --c: var(--mint); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--mint) 58%, #f0e9db); }
+.k-Fieldref { --c: var(--green); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--green) 58%, #f0e9db); }
+.k-Methodref { --c: var(--orange); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--orange) 58%, #f0e9db); }
+.k-InterfaceMethodref { --c: #ffb35c; --on-c: var(--ink); --c-lit: color-mix(in srgb, #ffb35c 58%, #f0e9db); }
+.k-NameAndType { --c: var(--purple); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--purple) 58%, #f0e9db); }
+.k-MethodHandle { --c: var(--cyan); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--cyan) 58%, #f0e9db); }
+.k-MethodType { --c: var(--indigo); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--indigo) 58%, #f0e9db); }
 .k-Dynamic,
-.k-InvokeDynamic { --c: var(--pink); }
+.k-InvokeDynamic { --c: var(--pink); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--pink) 58%, #f0e9db); }
 .k-Module,
-.k-Package { --c: var(--brown); }
-.k-Bootstrap { --c: #ff8ab0; }
+.k-Package { --c: var(--brown); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--brown) 58%, #f0e9db); }
+.k-Bootstrap { --c: #ff8ab0; --on-c: var(--ink); --c-lit: color-mix(in srgb, #ff8ab0 58%, #f0e9db); }
 
-.s-header { --c: #e5e5ea; }
-.s-pool { --c: var(--blue); }
-.s-class { --c: var(--purple); }
-.s-interfaces { --c: var(--indigo); }
-.s-fields { --c: var(--green); }
-.s-methods { --c: var(--orange); }
-.s-attributes { --c: var(--cyan); }
+.s-header { --c: #e5e5ea; --on-c: var(--ink); --c-lit: color-mix(in srgb, #e5e5ea 58%, #f0e9db); }
+.s-pool { --c: var(--blue); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--blue) 58%, #f0e9db); }
+.s-class { --c: var(--purple); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--purple) 58%, #f0e9db); }
+.s-interfaces { --c: var(--indigo); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--indigo) 58%, #f0e9db); }
+.s-fields { --c: var(--green); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--green) 58%, #f0e9db); }
+.s-methods { --c: var(--orange); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--orange) 58%, #f0e9db); }
+.s-attributes { --c: var(--cyan); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--cyan) 58%, #f0e9db); }
 
-.v-Greeter { --c: var(--orange); }
-.v-String { --c: var(--yellow); }
-.v-PrintStream { --c: var(--cyan); }
-.v-array { --c: var(--gray); }
-.v-CallSite { --c: var(--pink); }
-.v-null { --c: var(--gray); color: var(--text-3); }
+.v-Greeter { --c: var(--orange); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--orange) 58%, #f0e9db); }
+.v-String { --c: var(--yellow); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--yellow) 58%, #f0e9db); }
+.v-PrintStream { --c: var(--cyan); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--cyan) 58%, #f0e9db); }
+.v-array { --c: var(--gray); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--gray) 58%, #f0e9db); }
+.v-CallSite { --c: var(--pink); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--pink) 58%, #f0e9db); }
+.v-null { --c: var(--gray); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--gray) 58%, #f0e9db); color: var(--text-3); }
 
 .tone {
-  --c: var(--gray);
+  --c: var(--gray); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--gray) 58%, #f0e9db);
 }
 
-.tone-resolve { --c: var(--blue); }
-.tone-cache { --c: var(--green); }
-.tone-exec { --c: #e5e5ea; }
-.tone-invoke { --c: var(--orange); }
-.tone-load { --c: var(--purple); }
-.tone-static { --c: var(--yellow); }
-.tone-done { --c: var(--mint); }
+.tone-resolve { --c: var(--blue); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--blue) 58%, #f0e9db); }
+.tone-cache { --c: var(--green); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--green) 58%, #f0e9db); }
+.tone-exec { --c: #e5e5ea; --on-c: var(--ink); --c-lit: color-mix(in srgb, #e5e5ea 58%, #f0e9db); }
+.tone-invoke { --c: var(--orange); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--orange) 58%, #f0e9db); }
+.tone-load { --c: var(--purple); --on-c: var(--tape); --c-lit: color-mix(in srgb, var(--purple) 58%, #f0e9db); }
+.tone-static { --c: var(--yellow); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--yellow) 58%, #f0e9db); }
+.tone-done { --c: var(--mint); --on-c: var(--ink); --c-lit: color-mix(in srgb, var(--mint) 58%, #f0e9db); }
+
+/* ---------- VHS sleeve theme ---------- */
+
+body {
+  background:
+    repeating-linear-gradient(0deg, rgba(236, 229, 213, 0.022) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, rgba(236, 229, 213, 0.022) 0 1px, transparent 1px 32px),
+    var(--bg);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  pointer-events: none;
+  background: radial-gradient(ellipse 92% 82% at 50% 45%, transparent 62%, rgba(0, 0, 0, 0.38) 100%);
+}
+
+/* ---------- Type ---------- */
+
+.hero h1,
+.chapter h2 {
+  font-family: var(--display);
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  -webkit-text-fill-color: currentColor;
+  color: var(--tape);
+  text-shadow: none;
+  /* 走査線は見出しの上だけに残す。文字の幅にそろえるため箱を縮める */
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.hero h1 {
+  margin-inline: auto;
+}
+
+.hero h1::after,
+.chapter h2::after {
+  content: '';
+  position: absolute;
+  inset: -0.05em -0.03em 0.05em;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(19, 19, 23, 0.34) 0 1px, transparent 1px 3px);
+}
+
+.hero h1 .hero-code {
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.eyebrow {
+  font-family: var(--label);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-2);
+}
+
+.eyebrow .num {
+  background: var(--red);
+  color: var(--tape);
+  border-radius: 1px;
+  font-weight: 800;
+  padding: 2px 8px;
+}
+
+.eyebrow .spec {
+  color: var(--orange);
+  letter-spacing: 0.1em;
+}
+
+.lede strong {
+  color: var(--tape);
+}
+
+/* ---------- Nav ---------- */
+
+.nav {
+  background: #101014;
+  box-shadow:
+    0 2px 0 var(--purple),
+    0 4px 0 var(--pink),
+    0 6px 0 var(--red),
+    0 8px 0 var(--orange),
+    0 20px 26px -20px rgba(0, 0, 0, 0.9);
+}
+
+.brand {
+  font-family: var(--display);
+  font-style: normal;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--tape);
+}
+
+.brand-mark {
+  background: var(--tape);
+  color: var(--ink);
+  font-family: var(--label);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  border-radius: 1px;
+  box-shadow: none;
+}
+
+.nav-links a {
+  font-family: var(--label);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 1px;
+  color: var(--text-2);
+}
+
+.nav-links a:hover,
+.nav-links a[aria-current='true'] {
+  background: var(--tape);
+  color: var(--ink);
+}
+
+.nav-links .num {
+  color: inherit;
+  opacity: 0.6;
+}
+
+/* ---------- Surfaces ---------- */
+
+.card {
+  position: relative;
+  background: var(--panel);
+  box-shadow: var(--drop);
+  padding: 24px 18px 18px;
+}
+
+.card.fit {
+  padding: 24px 18px 18px;
+}
+
+/* 背表紙の 4 本帯 */
+.card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 10px;
+  background: var(--band);
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.panel {
+  background: rgba(236, 229, 213, 0.04);
+  box-shadow: none;
+}
+
+.panel-title {
+  margin: -4px -6px 10px;
+  padding: 4px 8px;
+  border-radius: 1px;
+  background: var(--tape);
+  color: var(--ink);
+  font-family: var(--label);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.panel-title .aside,
+.panel-title .pt-spec {
+  color: #5f5748;
+}
+
+.panel-title .seg {
+  background: rgba(19, 19, 23, 0.14);
+}
+
+.panel-title .seg button {
+  color: #4c4638;
+}
+
+.panel-title .seg button[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--tape);
+}
+
+.panel-title .rt-legend b {
+  color: var(--ink);
+}
+
+.reading-title,
+.insp-index,
+.effects-head h3,
+.caption-title {
+  font-family: var(--display);
+  font-style: normal;
+  letter-spacing: -0.02em;
+  color: var(--tape);
+}
+
+/* ---------- Controls ---------- */
+
+.btn-primary {
+  background: var(--orange);
+  color: var(--ink);
+  font-family: var(--label);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border-radius: 1px;
+  box-shadow: var(--drop-sm);
+}
+
+.btn-primary:hover {
+  background: var(--yellow);
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
+}
+
+.btn-link {
+  font-family: var(--label);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-2);
+}
+
+.btn-link:hover {
+  color: var(--tape);
+}
+
+.meta-pill,
+.pick,
+.spec-link,
+.t-speed,
+.uchip {
+  font-family: var(--label);
+  border-radius: 1px;
+  letter-spacing: 0.04em;
+}
+
+.pick.on {
+  background: var(--tape);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.transport {
+  background: #101014;
+  border-radius: 2px;
+  box-shadow: var(--drop-sm);
+}
+
+.transport::before {
+  content: 'SP';
+  align-self: center;
+  margin-left: 4px;
+  font-family: var(--label);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--text-3);
+}
+
+.t-btn {
+  border-radius: 1px;
+  background: rgba(236, 229, 213, 0.09);
+  color: var(--tape);
+  box-shadow: none;
+}
+
+.t-btn:hover {
+  background: var(--tape);
+  color: var(--ink);
+}
+
+.t-btn.play {
+  background: var(--red);
+  color: var(--tape);
+}
+
+.t-btn.play:hover {
+  background: var(--orange);
+  color: var(--ink);
+}
+
+.t-rail {
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.t-fill {
+  border-radius: 0;
+  background: var(--orange);
+}
+
+.t-knob {
+  border-radius: 0;
+  background: var(--tape);
+  box-shadow: none;
+}
+
+.t-count {
+  font-family: var(--label);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text-2);
+  text-shadow: none;
+}
+
+/* ---------- Accents ---------- */
+
+.chip,
+.cp-ref,
+.badge,
+.echip.new,
+.state {
+  border-radius: 1px;
+  font-family: var(--label);
+  letter-spacing: 0.04em;
+}
+
+.chip {
+  background: var(--c);
+  color: var(--on-c, var(--ink));
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.chip .dot {
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.cp-ref {
+  background: var(--c);
+  color: var(--on-c, var(--ink));
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.cp-ref:hover {
+  background: var(--tape);
+  color: var(--ink);
+}
+
+.badge.new {
+  background: var(--green);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.badge.shared {
+  background: rgba(236, 229, 213, 0.12);
+  color: var(--text-2);
+}
+
+.rcp.resolved .state,
+.rcp.static .state,
+.rcp.failed .state {
+  font-weight: 700;
+}
+
+.rcp.static .state {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.rcp.failed .state {
+  color: var(--tape);
+  background: var(--red);
+}
+
+.kid.resolved {
+  background: var(--green);
+  color: var(--ink);
+}
+
+.kid.static {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.tile,
+.bm,
+.hb {
+  border-radius: 0;
+}
+
+.gnode {
+  border-radius: 1px;
+  box-shadow: var(--drop-sm);
+}
+
+.gnode.root {
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.55);
+}
+
+.edge-label {
+  font-family: var(--label);
+  border-radius: 1px;
+}
+
+/* ---------- Code and screens ---------- */
+
+.console,
+.term {
+  background: #0d0d10;
+  color: var(--tape);
+  text-shadow: none;
+  border-radius: 1px;
+}
+
+.console .prompt,
+.term .prompt {
+  color: var(--orange);
+}
+
+.console .out {
+  color: var(--tape);
+}
+
+.console .err {
+  color: #ff6a5c;
+  text-shadow: none;
+}
+
+.hero-dump {
+  color: rgba(236, 229, 213, 0.07);
+}
+
+.hero-dump .magic {
+  color: var(--orange);
+  text-shadow: none;
+}
+
+.hero-dump .lit {
+  color: rgba(236, 229, 213, 0.2);
+}
+
+.hero-glow {
+  background: none;
+}
+
+.tok-kw {
+  color: #e2749f;
+}
+
+.tok-str {
+  color: #e3b24c;
+}
+
+.tok-num {
+  color: #dd8a4a;
+}
+
+.tok-type {
+  color: #79b4c2;
+}
+
+.tok-plain {
+  color: #ded7c6;
+}
+
+.code-line.lit {
+  background: linear-gradient(90deg, rgba(224, 51, 39, 0.24), transparent 80%);
+}
+
+/* ---------- VHS details ---------- */
+
+.meta-pill {
+  background: var(--tape);
+  color: var(--ink);
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.tooltip {
+  background: var(--tape);
+  color: var(--ink);
+  border-radius: 1px;
+  font-family: var(--label);
+  box-shadow: var(--drop-sm);
+}
+
+.tooltip .tt-dim {
+  color: #5f5748;
+}
+
+.spec-link {
+  background: rgba(236, 229, 213, 0.1);
+  color: var(--text-2);
+}
+
+.spec-link:hover {
+  background: var(--tape);
+  color: var(--ink);
+}
+
+.t-speed {
+  color: var(--text-2);
+  background: rgba(236, 229, 213, 0.09);
+  font-weight: 700;
+}
+
+.callout {
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--c) 18%, rgba(0, 0, 0, 0.3));
+}
+
+.struct-line,
+.bc-list li,
+.rcp,
+.obj,
+.frame,
+.slot,
+.value,
+.mrow,
+.uchip,
+.echip,
+.bgroup,
+.hexgroup,
+.count,
+.cls {
+  border-radius: 1px;
+}
+
+.struct-line.current {
+  background: color-mix(in srgb, var(--c) 30%, transparent);
+  color: var(--tape);
+}
+
+.bc-list li.cur {
+  background: rgba(240, 128, 31, 0.2);
+}
+
+.bc-list li.cur::before {
+  background: var(--orange);
+  box-shadow: none;
+}
+
+.empty-note,
+.graph-hint,
+.strip-axis,
+.legend,
+.stat,
+.count span,
+.cls-meta,
+.obj-tag,
+.frame-body h5 {
+  font-family: var(--label);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Footer · sleeve back cover ---------- */
+
+.footer {
+  position: relative;
+  margin-top: 96px;
+  padding-top: 52px;
+  padding-bottom: 120px;
+  background: none;
+}
+
+.footer h3 {
+  font-family: var(--label);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--tape);
+}
+
+.footer a {
+  color: var(--text-2);
+}
+
+.footer a:hover {
+  color: var(--tape);
+}
+
+.footer .spec-list span {
+  color: var(--text-3);
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 12px;
+  background: var(--band);
+}
+
+.footer::after {
+  content: '';
+  position: absolute;
+  right: var(--gutter);
+  bottom: 44px;
+  width: 132px;
+  height: 46px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      var(--ink) 0 2px,
+      transparent 2px 5px,
+      var(--ink) 5px 6px,
+      transparent 6px 10px,
+      var(--ink) 10px 13px,
+      transparent 13px 14px,
+      var(--ink) 14px 15px,
+      transparent 15px 19px
+    ),
+    var(--tape);
+}
+
+/* ---------- Hero sleeve art ---------- */
+
+.hero .eyebrow {
+  color: var(--tape);
+}
+
+/* 斜めのカラーバー。VHS パッケージの表 1 と同じ並び */
+.hero-glow {
+  inset: 0;
+  width: auto;
+  height: auto;
+  transform: none;
+  filter: none;
+  background: linear-gradient(
+    28deg,
+    transparent 0 2%,
+    var(--purple) 2% 4.8%,
+    transparent 4.8% 6.3%,
+    var(--pink) 6.3% 9.1%,
+    transparent 9.1% 10.6%,
+    var(--red) 10.6% 13.4%,
+    transparent 13.4% 14.9%,
+    var(--orange) 14.9% 17.7%,
+    transparent 17.7% 19.2%,
+    var(--yellow) 19.2% 22%,
+    transparent 22% 100%
+  );
+}
+
+/* ---------- Readability on the tape label ---------- */
+
+.panel-title .crumbs,
+.panel-title .crumbs button {
+  color: #5f5748;
+}
+
+.panel-title .crumbs button[aria-current='true'] {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* --c が明るいと行全体が白く沈むので、必ず暗い側と混ぜる */
+.struct-line.current {
+  background: color-mix(in srgb, var(--c) 26%, rgba(0, 0, 0, 0.5));
+  color: var(--tape);
+}
+
+.s-header {
+  --c: var(--tape-2);
+  --on-c: var(--ink);
+  --c-lit: var(--tape);
+}
+
+.tone-exec {
+  --c: var(--tape-2);
+  --on-c: var(--ink);
+  --c-lit: var(--tape);
+}
