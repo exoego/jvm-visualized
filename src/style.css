@@ -2440,7 +2440,8 @@ code,
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
-  .rt-head {
+  .rt-head,
+  .lk-head {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 }
@@ -2493,7 +2494,8 @@ code,
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .rt-head {
+  .rt-head,
+  .lk-head {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -3518,6 +3520,9 @@ code,
 }
 
 .lk-head {
+  display: grid;
+  grid-template-columns: minmax(0, 3.1fr) minmax(0, 1.1fr);
+  gap: 12px;
   margin-bottom: 12px;
 }
 

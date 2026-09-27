@@ -247,7 +247,6 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       { class: 'rt-col' },
       panel('run-panel', '実行', null, terminal),
       panel('grow', 'LinkageError の仲間', null, tree),
-      noteBox,
     ),
   );
 
@@ -259,7 +258,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
     label: (i) => STEPS[i].title.replace(/[`*]/g, ''),
   });
 
-  const head = h('div', { class: 'lk-head' }, caption);
+  const head = h('div', { class: 'lk-head' }, caption, noteBox);
   root.append(h('div', { class: 'card fit linkage-card', tabindex: -1 }, head, grid, player.el));
   player.bindKeys(root);
 
@@ -344,6 +343,26 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
     target.replaceChildren(...rows);
   }
 
+  const RUNS = [OK_RUN, NG_RUN, NG_CMD, ['$ _']];
+
+  // 例外が出た行で急に伸びると読みにくいので、一番長い出力に合わせて固定する
+  function lockRunHeight(): void {
+    terminal.style.height = '';
+    const probe = terminal.cloneNode(false) as HTMLElement;
+    probe.setAttribute(
+      'style',
+      `position:absolute;visibility:hidden;left:0;top:0;height:auto;width:${terminal.clientWidth}px`,
+    );
+    terminal.parentElement?.append(probe);
+    let tallest = 0;
+    for (const lines of RUNS) {
+      probe.replaceChildren(...lines.map((line) => h('span', { class: 'line' }, line)));
+      tallest = Math.max(tallest, probe.offsetHeight);
+    }
+    probe.remove();
+    terminal.style.height = `${tallest}px`;
+  }
+
   function renderTerminal(step: Step): void {
     const lines =
       step.run === 'old' ? OK_RUN : step.run === 'new' ? NG_RUN : step.run === 'cmd' ? NG_CMD : ['$ _'];
@@ -410,6 +429,9 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       tallest = Math.max(tallest, probe.offsetHeight);
     }
     probe.remove();
+    noteBox.style.alignSelf = 'start';
+    tallest = Math.max(tallest, noteBox.offsetHeight);
+    noteBox.style.alignSelf = '';
     head.style.height = `${tallest}px`;
   }
 
@@ -418,9 +440,11 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
     if (head.clientWidth === lastWidth) return;
     lastWidth = head.clientWidth;
     lockHeadHeight();
+    lockRunHeight();
     fitters.forEach((f) => f.update());
   }).observe(head);
 
   render(0);
   lockHeadHeight();
+  lockRunHeight();
 }
