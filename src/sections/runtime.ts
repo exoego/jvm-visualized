@@ -99,7 +99,8 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
 
   const panel = (cls: string, title: string, spec: string | null, aside: Node | string | null, body: HTMLElement) => {
     const box = h('div', { class: 'fit-box' }, body);
-    fitters.push(fitter(box, body));
+    // 1366x768 では一番深いスタックが 0.72 では収まらない
+    fitters.push(fitter(box, body, 0.64));
     return h(
       'div',
       { class: `panel ${cls}` },
@@ -159,7 +160,8 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
   });
 
   // 標準出力は JVM の中の状態ではなくプログラムの外に出た結果なので、内部を並べたグリッドから外して解説の隣に置く
-  const head = h('div', { class: 'rt-head' }, panel('console-panel', '標準出力', null, null, consoleEl), caption);
+  const consolePanel = panel('console-panel', '標準出力', null, null, consoleEl);
+  const head = h('div', { class: 'rt-head' }, consolePanel, caption);
   const wrap = h('div', { class: 'rt-wrap' }, head, grid, links);
   root.append(h('div', { class: 'card fit runtime-card', tabindex: -1 }, wrap, player.el));
   player.bindKeys(root);
@@ -202,13 +204,28 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
       probeSpecs,
       probeBody,
     );
-    wrap.append(probe);
+    const termProbe = consolePanel.cloneNode(true) as HTMLElement;
+    const termBody = termProbe.querySelector('.console') as HTMLElement;
+    termBody.style.transform = '';
+    termBody.style.width = '';
+    termProbe.setAttribute(
+      'style',
+      `position:absolute;visibility:hidden;left:0;top:0;height:auto;width:${consolePanel.clientWidth}px`,
+    );
+    wrap.append(probe, termProbe);
     let tallest = 0;
     for (const s of snapshots) {
       fillCaption({ title: probeTitle, body: probeBody, specs: probeSpecs }, s);
-      tallest = Math.max(tallest, probe.offsetHeight);
+      fill(
+        termBody,
+        h('span', { class: 'line' }, h('span', { class: 'prompt' }, '$ '), 'java Greeter'),
+        ...s.console.map((line) => h('span', { class: 'line' }, line)),
+        s.frames.length ? h('span', { class: 'cursor' }) : null,
+      );
+      tallest = Math.max(tallest, probe.offsetHeight, termProbe.offsetHeight);
     }
     probe.remove();
+    termProbe.remove();
     head.style.height = `${tallest}px`;
   }
 
