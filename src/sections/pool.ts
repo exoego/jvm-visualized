@@ -1,12 +1,12 @@
 import { cpRaw, cpText, CP_SECTION, hexBytes, holdsValue, prettyDescriptor } from '../classfile/describe';
 import type { ClassFile, CpEntry, CpKind, Part } from '../classfile/types';
-import copyText from '../copy/pool.md?raw';
+import copyText from '../copy/02-pool.md?raw';
 import { loadCopy } from '../ui/copy';
 import { fitMode, fitter, h, rich, showable, specLink, svg } from '../ui/dom';
 import { hideTooltip, showTooltip } from '../ui/tooltip';
 import { buildGraph, edgePath, NODE_H, NODE_W, nodeText } from './graph';
 
-const copy = loadCopy(copyText, 'pool');
+const copy = loadCopy(copyText, '02-pool');
 
 const PICKS: { label: string; find: (cf: ClassFile) => number | undefined }[] = [
   { label: 'メソッド呼び出し', find: (cf) => firstInsn(cf, 'invokevirtual') },

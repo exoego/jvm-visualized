@@ -1,12 +1,12 @@
 import { hex } from '../classfile/describe';
 import type { ClassFile } from '../classfile/types';
-import copyText from '../copy/start.md?raw';
+import copyText from '../copy/00-start.md?raw';
 import { loadCopy } from '../ui/copy';
 import { h, reducedMotion } from '../ui/dom';
 import { onceVisible } from '../ui/reveal';
 import { tokenize } from './source';
 
-const copy = loadCopy(copyText, 'start');
+const copy = loadCopy(copyText, '00-start');
 
 const PREVIEW_ROWS = 4;
 

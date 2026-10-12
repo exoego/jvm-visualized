@@ -9,7 +9,7 @@ import {
   prettyDescriptor,
 } from '../classfile/describe';
 import type { Attribute, ClassFile, CpEntry, Member, Part, TopItem } from '../classfile/types';
-import copyText from '../copy/structure.md?raw';
+import copyText from '../copy/01-structure.md?raw';
 import { loadCopy } from '../ui/copy';
 import { FIT_QUERY, fitMode, fitter, h, reducedMotion, rich, showable, specLink } from '../ui/dom';
 import { Player } from '../ui/player';
@@ -35,7 +35,7 @@ const LINES: { key: string; type: string; name: string; section: TopItem['sectio
   { key: 'attributes', type: 'attribute_info', name: 'attributes[attributes_count]', section: 'attributes' },
 ];
 
-const copy = loadCopy(copyText, 'structure');
+const copy = loadCopy(copyText, '01-structure');
 
 const SECTION_LABEL: Record<TopItem['section'], string> = {
   header: 'ヘッダ',

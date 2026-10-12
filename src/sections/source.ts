@@ -1,11 +1,11 @@
 import { cpRaw, cpText, holdsValue } from '../classfile/describe';
 import type { ClassFile, Instruction, Member } from '../classfile/types';
-import copyText from '../copy/source.md?raw';
+import copyText from '../copy/03-source.md?raw';
 import { loadCopy } from '../ui/copy';
 import { fill, fitter, h, rich, showable, specLink } from '../ui/dom';
 import { nodeText } from './graph';
 
-const copy = loadCopy(copyText, 'source');
+const copy = loadCopy(copyText, '03-source');
 
 type Origin =
   | { kind: 'thisClass' }
@@ -15,7 +15,7 @@ type Origin =
   | { kind: 'attribute'; name: string }
   | { kind: 'utf8'; value: string; label: string };
 
-// 見出しと解説文は copy/source.md に、同じ id で書く
+// 見出しと解説文は copy/03-source.md に、同じ id で書く
 interface Spot {
   id: string;
   spec: string[];

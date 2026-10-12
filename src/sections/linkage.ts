@@ -1,11 +1,11 @@
 import { cpText, prettyDescriptor } from '../classfile/describe';
 import type { ClassFile, Member } from '../classfile/types';
-import copyText from '../copy/linkage.md?raw';
+import copyText from '../copy/05-linkage.md?raw';
 import { loadCopy } from '../ui/copy';
 import { fitter, h, rich, showable, specLink, type Fitter } from '../ui/dom';
 import { Player } from '../ui/player';
 
-const copy = loadCopy(copyText, 'linkage');
+const copy = loadCopy(copyText, '05-linkage');
 
 type Tone = 'load' | 'resolve' | 'exec' | 'error' | 'done';
 
