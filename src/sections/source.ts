@@ -379,7 +379,7 @@ export function mountSource(
   const extraBar = h(
     'div',
     { class: 'source-extras' },
-    h('span', { class: 'label' }, 'ほかにも'),
+    h('span', { class: 'label' }, 'その他'),
     extras.map((s) => {
       const btn = h('button', { class: 'pick', type: 'button', onclick: () => activate(s.id) }, s.label!);
       extraButtons.set(s.id, btn);
