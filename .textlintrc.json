@@ -1,0 +1,29 @@
+{
+  "plugins": {
+    "html": true
+  },
+  "rules": {
+    "preset-ja-technical-writing": {
+      "sentence-length": { "max": 100 },
+      "max-ten": { "max": 3 },
+      "max-kanji-continuous-len": { "max": 6, "allow": ["実行時定数プール"] },
+      "no-mix-dearu-desumasu": { "preferInBody": "ですます", "preferInList": "", "preferInHeader": "" },
+      "no-doubled-joshi": { "min_interval": 1, "allow": ["も"] },
+      "ja-no-redundant-expression": {
+        "dictOptions": {
+          "dict6": {
+            "allows": ["/^処理を実行/", "/^[ァ-ヶ]+を.?実行/", "/^[a-zA-Z]+を.?実行/", "/^命令を実行/"]
+          }
+        }
+      }
+    },
+    "preset-ja-spacing": {
+      "ja-space-between-half-and-full-width": { "space": "always" },
+      "ja-nakaguro-or-halfwidth-space-between-katakana": false,
+      "ja-space-around-code": { "before": true, "after": true }
+    },
+    "prh": {
+      "rulePaths": ["./textlint/prh.yml"]
+    }
+  }
+}
