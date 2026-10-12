@@ -11,18 +11,24 @@ interface Entry {
   lines: string[];
 }
 
-// src/copy/*.md を読む。`## key: ラベル` で項目が始まり、続く行が本文。{name} は params の値で埋める。
+// src/copy/*.md を読む。`<!-- key -->` の行で項目が始まり、直後の `## ` 行がラベル、続く行が本文。
+// key をコメントにしているのは、Markdown のプレビューに出さないため。{name} は params の値で埋める。
 export function loadCopy(markdown: string, name: string): Copy {
   const entries = new Map<string, Entry>();
   let current: Entry | undefined;
   for (const line of markdown.split('\n')) {
-    const head = line.match(/^## ([\w.-]+)(?:: (.*))?$/);
-    if (head) {
-      current = { title: head[2]?.trim(), lines: [] };
-      entries.set(head[1], current);
-    } else if (current && !line.startsWith('<!--')) {
-      current.lines.push(line);
+    const key = line.match(/^<!--\s*([\w.-]+)\s*-->$/);
+    if (key) {
+      current = { lines: [] };
+      entries.set(key[1], current);
+      continue;
     }
+    if (!current || line.startsWith('<!--')) continue;
+    if (line.startsWith('## ') && current.title === undefined && current.lines.every((l) => !l.trim())) {
+      current.title = line.slice(3).trim();
+      continue;
+    }
+    current.lines.push(line);
   }
 
   const entry = (key: string): Entry => {

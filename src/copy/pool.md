@@ -1,95 +1,95 @@
 # 02 定数プールの解説文
 
-<!-- `## key: ラベル` で項目が始まり、続く行が本文。ラベルは見出し用の短い句、本文は 1 段落 1 行の文。{name} はコードが埋める値。 -->
+<!-- 各項目は key を書いたコメント行で始まる。続く「## 」の行が見出し用のラベル、その下が本文。本文は 1 段落 1 行の文。{name} はコードが埋める値。 -->
 
-## Utf8
+<!-- Utf8 -->
 
 文字列そのものを持つエントリです。クラス名、メソッド名、記述子、属性名は、すべて最終的に Utf8 エントリを指します。長さ (u2) のあとに Modified UTF-8 のバイト列が続きます。
 
-## Class
+<!-- Class -->
 
 クラスまたはインターフェースへの参照。中身は名前 (Utf8) の番号だけです。
 
-## String
+<!-- String -->
 
 `java.lang.String` の定数。文字そのものは持たず、Utf8 の番号を持ちます。
 
-## Integer
+<!-- Integer -->
 
 4 バイトの int 定数。-32768〜32767 に収まる値は、ふつう命令 (bipush, sipush) に直接埋め込まれるので、ここには入りません。
 
-## Float
+<!-- Float -->
 
 4 バイトの float 定数 (IEEE 754)。
 
-## Long
+<!-- Long -->
 
 8 バイトの long 定数。**定数プールの番号を 2 つ使う**ので、次の番号は欠番になります。
 
-## Double
+<!-- Double -->
 
 8 バイトの double 定数。Long と同じく番号を 2 つ使います。
 
-## Fieldref
+<!-- Fieldref -->
 
 フィールドへの参照。「どのクラスの」(class_index) と「どの名前と型の」(name_and_type_index) の 2 つの番号の組です。
 
-## Methodref
+<!-- Methodref -->
 
 クラスのメソッドへの参照。「どのクラスの」と「どの名前と記述子の」の 2 つの番号の組です。
 
-## InterfaceMethodref
+<!-- InterfaceMethodref -->
 
 インターフェースのメソッドへの参照。形は Methodref と同じです。
 
-## NameAndType
+<!-- NameAndType -->
 
 名前と記述子の組。どのクラスのものかは持たないので、別々のクラスへの参照からも共有できます。
 
-## MethodHandle
+<!-- MethodHandle -->
 
 メソッドハンドル。reference_kind が「static メソッドを呼ぶ」「フィールドを読む」などの使い方を表します。
 
-## MethodType
+<!-- MethodType -->
 
 メソッドの型 (記述子) だけを表す定数です。
 
-## Dynamic
+<!-- Dynamic -->
 
 ブートストラップメソッドで値を計算する定数 (Java 11〜)。
 
-## InvokeDynamic
+<!-- InvokeDynamic -->
 
 invokedynamic 命令の呼び出し地点。呼び出し先を決めるブートストラップメソッドを、BootstrapMethods 属性の番号で指します。
 
-## Module
+<!-- Module -->
 
 モジュール名。module-info.class だけで使われます。
 
-## Package
+<!-- Package -->
 
 パッケージ名。module-info.class だけで使われます。
 
-## graph-hint
+<!-- graph-hint -->
 
 点線は、このエントリを指している側です。ノードを選ぶと、その先をたどれます。
 
-## recipe-note
+<!-- recipe-note -->
 
 `\u0001` は文字列連結のレシピで「ここに引数が入る」という印です。StringConcatFactory がこのレシピを読んで、連結の方法を決めます。
 
-## long-note
+<!-- long-note -->
 
 次の `#{next}` は番号としては有効ですが、使えない扱いです。仕様書にも「振り返れば、8 バイトの定数に 2 つのエントリを使わせたのはまずい選択だった」とあります (§4.4.5)。
 
-## no-usages
+<!-- no-usages -->
 
 どこからも参照されていません。
 
-## bsm-desc
+<!-- bsm-desc -->
 
 定数プールではなく、class ファイルの末尾にある **BootstrapMethods 属性**の中の表の 1 行です。だから `#` の番号はありません。invokedynamic が初めて実行されるとき、JVM はこの行のメソッドハンドルを静的引数と一緒に呼び出して、呼び出し先を決めます (§5.4.3.6)。
 
-## bsm-attr
+<!-- bsm-attr -->
 
 この表は `attributes[{attr}]` の BootstrapMethods 属性 (offset {offset} · {size} B) の中にあります。属性の先頭は、名前 `#{nameIndex}`、長さ、行数の順に並び、その後ろに各行が続きます。
