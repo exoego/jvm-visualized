@@ -9,8 +9,12 @@ import {
   type Tone,
   type Value,
 } from '../runtime/machine';
+import copyText from '../copy/runtime.md?raw';
+import { loadCopy } from '../ui/copy';
 import { fill, fitter, h, rich, showable, specLink, svg, type Fitter } from '../ui/dom';
 import { Player } from '../ui/player';
+
+const copy = loadCopy(copyText, 'runtime');
 
 const TONE_LABEL: Record<Tone, string> = {
   load: 'ロード',
@@ -255,7 +259,7 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
   function renderFrames(s: Snapshot, prev?: Snapshot): void {
     const frames = s.frames.map((f, i) => ({ f, i })).reverse();
     if (!frames.length) {
-      framesEl.replaceChildren(h('p', { class: 'empty-note' }, 'フレームはありません。'));
+      framesEl.replaceChildren(h('p', { class: 'empty-note' }, copy.body('no-frames')));
       return;
     }
     framesEl.replaceChildren(
@@ -319,7 +323,7 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
       h('span', { class: 'tone-cache', title: '解決済みの結果を再利用した回数' }, h('i', { class: 'dot' }), '再利用 ', h('b', {}, String(s.hits))),
     );
     if (!s.rcp.length) {
-      rcpList.replaceChildren(h('li', { class: 'empty-note' }, 'クラスがロードされると、ここにできます。'));
+      rcpList.replaceChildren(h('li', { class: 'empty-note' }, copy.body('no-rcp')));
       return;
     }
     const focusRow = s.rcp.find((r) => r.index === s.focusCp);

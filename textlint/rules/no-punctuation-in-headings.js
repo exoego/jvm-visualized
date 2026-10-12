@@ -1,7 +1,9 @@
 const PUNCTUATION = /[、。，．]/g;
 
+// ページの見出し (index.html の h1〜h3) だけが対象。src/copy/*.md の見出しは解説のラベルで、読点を含んでよい。
 export default function noPunctuationInHeadings(context) {
-  const { Syntax, RuleError, report, locator } = context;
+  const { Syntax, RuleError, report, locator, getFilePath } = context;
+  if (!getFilePath()?.endsWith('.html')) return {};
 
   const walk = (node, visit) => {
     visit(node);

@@ -1,7 +1,11 @@
 import { cpRaw, cpText, holdsValue } from '../classfile/describe';
 import type { ClassFile, Instruction, Member } from '../classfile/types';
+import copyText from '../copy/source.md?raw';
+import { loadCopy } from '../ui/copy';
 import { fill, fitter, h, rich, showable, specLink } from '../ui/dom';
 import { nodeText } from './graph';
+
+const copy = loadCopy(copyText, 'source');
 
 type Origin =
   | { kind: 'thisClass' }
@@ -11,14 +15,12 @@ type Origin =
   | { kind: 'attribute'; name: string }
   | { kind: 'utf8'; value: string; label: string };
 
+// 見出しと解説文は copy/source.md に、同じ id で書く
 interface Spot {
   id: string;
   spec: string[];
   line?: number;
   match?: string;
-  label?: string;
-  title: string;
-  note: string;
   origins: Origin[];
 }
 
@@ -28,8 +30,6 @@ const SPOTS: Spot[] = [
     spec: ['4.1', '4.4.1'],
     line: 1,
     match: 'class Greeter',
-    title: 'クラス宣言',
-    note: 'クラス名は Class と Utf8 の組で表します。extends を書かなくても、親クラスとして `java/lang/Object` が入ります。',
     origins: [{ kind: 'thisClass' }, { kind: 'superClass' }],
   },
   {
@@ -37,8 +37,6 @@ const SPOTS: Spot[] = [
     spec: ['4.7.2', '5.5'],
     line: 2,
     match: 'private static final String GREETING = "Hello, ";',
-    title: '定数フィールド',
-    note: '値がコンパイル時に決まる `static final` の定数です。値 "Hello, " は **ConstantValue 属性**に入り、クラスを初期化するときにフィールドへ入ります。',
     origins: [{ kind: 'member', member: 'field', name: 'GREETING', attributes: true }],
   },
   {
@@ -46,8 +44,6 @@ const SPOTS: Spot[] = [
     spec: ['4.5', '4.3.2'],
     line: 4,
     match: 'private final String name;',
-    title: 'フィールド宣言',
-    note: 'フィールドの名前と型を、2 つの Utf8 で表します。型は `Ljava/lang/String;` という**記述子**の形です。',
     origins: [{ kind: 'member', member: 'field', name: 'name' }],
   },
   {
@@ -55,8 +51,6 @@ const SPOTS: Spot[] = [
     spec: ['2.9.1', '3.8'],
     line: 6,
     match: 'public Greeter(String name)',
-    title: 'コンストラクタ',
-    note: 'コンストラクタの名前は `<init>` です。書いていない `super()` の呼び出しも javac が入れるので、Object のコンストラクタへの Methodref ができます。',
     origins: [
       { kind: 'member', member: 'method', name: '<init>' },
       { kind: 'insn', line: 6 },
@@ -67,8 +61,6 @@ const SPOTS: Spot[] = [
     spec: ['3.8'],
     line: 7,
     match: 'this.name = name;',
-    title: 'フィールドへの代入',
-    note: '代入は `putfield` 命令になり、Fieldref を 1 つ使います。その中身の Class や名前は、クラス宣言とフィールド宣言で生まれたエントリの再利用です。',
     origins: [{ kind: 'insn', line: 7 }],
   },
   {
@@ -76,8 +68,6 @@ const SPOTS: Spot[] = [
     spec: ['4.6', '4.3.3'],
     line: 10,
     match: 'public String greet()',
-    title: 'メソッド宣言',
-    note: 'メソッドの名前と記述子。記述子 `()Ljava/lang/String;` は「引数なしで String を返す」という意味です。',
     origins: [{ kind: 'member', member: 'method', name: 'greet' }],
   },
   {
@@ -85,8 +75,6 @@ const SPOTS: Spot[] = [
     spec: ['4.4.10', '4.7.23'],
     line: 11,
     match: 'GREETING + name + "!"',
-    title: '文字列の連結',
-    note: 'Java 9 以降、文字列の `+` は **invokedynamic** になります (JEP 280)。`GREETING` は定数なので、javac は値 "Hello, " をその場に埋め込み、`"Hello, \\u0001!"` という 1 つのレシピにまとめます。バイトコードは GREETING を読みません。`\\u0001` の位置に name の値が入ります。',
     origins: [
       { kind: 'insn', line: 11 },
       { kind: 'attribute', name: 'BootstrapMethods' },
@@ -98,8 +86,6 @@ const SPOTS: Spot[] = [
     spec: ['4.3.3'],
     line: 14,
     match: 'public static void main(String[] args)',
-    title: 'main メソッド',
-    note: '記述子 `([Ljava/lang/String;)V` の `[` は配列を表します。',
     origins: [{ kind: 'member', member: 'method', name: 'main' }],
   },
   {
@@ -107,8 +93,6 @@ const SPOTS: Spot[] = [
     spec: ['3.8', '3.4'],
     line: 15,
     match: 'new Greeter("JVM")',
-    title: 'オブジェクトの生成',
-    note: '`new` で領域を確保し、`invokespecial` でコンストラクタを呼びます。文字列 "JVM" は String と Utf8 の 2 つ。Class エントリはクラス宣言のものをそのまま使います。',
     origins: [{ kind: 'insn', line: 15 }],
   },
   {
@@ -116,8 +100,6 @@ const SPOTS: Spot[] = [
     spec: ['4.4.2', '6.5.getstatic'],
     line: 16,
     match: 'System.out',
-    title: 'static フィールドの読み出し',
-    note: '`System.out` は static フィールドなので `getstatic`。Fieldref、Class、NameAndType と、3 つの Utf8 が必要です。',
     origins: [{ kind: 'insn', line: 16, ops: ['getstatic'] }],
   },
   {
@@ -125,8 +107,6 @@ const SPOTS: Spot[] = [
     spec: ['3.7'],
     line: 16,
     match: 'println',
-    title: 'インスタンスメソッドの呼び出し',
-    note: '記述子 `(Ljava/lang/String;)V` は、コンストラクタの記述子とまったく同じ文字列です。だから**同じ Utf8 を共有**します。',
     origins: [{ kind: 'insn', line: 16, ops: ['invokevirtual'], member: 'println' }],
   },
   {
@@ -134,8 +114,6 @@ const SPOTS: Spot[] = [
     spec: ['3.7'],
     line: 16,
     match: 'g.greet()',
-    title: '自分のクラスのメソッド呼び出し',
-    note: '変数 g の読み出しは `aload_1` で、定数プールは使いません。呼び出しの `invokevirtual` が Methodref を 1 つ使います。',
     origins: [{ kind: 'insn', line: 16, ops: ['aload_1', 'invokevirtual'], member: 'greet' }],
   },
   {
@@ -143,8 +121,6 @@ const SPOTS: Spot[] = [
     spec: ['4.4.2', '6.5.getstatic'],
     line: 17,
     match: 'System.out',
-    title: '2 回目の System.out',
-    note: '16 行目とまったく同じ参照です。命令は増えますが、**定数プールのエントリは 1 つも増えません**。',
     origins: [{ kind: 'insn', line: 17, ops: ['getstatic'] }],
   },
   {
@@ -152,8 +128,6 @@ const SPOTS: Spot[] = [
     spec: ['3.7'],
     line: 17,
     match: 'println',
-    title: '2 回目の println',
-    note: '命令 `invokevirtual` は 2 つ目ですが、指している番号は 16 行目と同じです。',
     origins: [{ kind: 'insn', line: 17, ops: ['invokevirtual'], member: 'println' }],
   },
   {
@@ -161,16 +135,11 @@ const SPOTS: Spot[] = [
     spec: ['3.7'],
     line: 17,
     match: 'g.greet()',
-    title: '2 回目の greet()',
-    note: '同じ Methodref を指すだけなので、新しいエントリはありません。',
     origins: [{ kind: 'insn', line: 17, ops: ['aload_1', 'invokevirtual'], member: 'greet' }],
   },
   {
     id: 'hidden',
     spec: ['4.7.3', '4.7.12', '4.7.10'],
-    label: 'ソースに書いていないもの',
-    title: 'ソースに書いていないもの',
-    note: '属性の名前も Utf8 です。`Code` や `LineNumberTable` はすべてのメソッドで同じエントリを共有します。SourceFile 属性はファイル名を残します。',
     origins: [
       { kind: 'utf8', value: 'Code', label: 'Code 属性の名前' },
       { kind: 'utf8', value: 'LineNumberTable', label: 'LineNumberTable 属性の名前' },
@@ -381,7 +350,7 @@ export function mountSource(
     { class: 'source-extras' },
     h('span', { class: 'label' }, 'その他'),
     extras.map((s) => {
-      const btn = h('button', { class: 'pick', type: 'button', onclick: () => activate(s.id) }, s.label!);
+      const btn = h('button', { class: 'pick', type: 'button', onclick: () => activate(s.id) }, copy.title(s.id));
       extraButtons.set(s.id, btn);
       return btn;
     }),
@@ -431,7 +400,7 @@ export function mountSource(
     const fresh = entries.filter((i) => owner.get(i)?.id === id);
     const spotOrder = spots.indexOf(spot);
 
-    const hint = 'エントリにカーソルを合わせると中身を表示します。選ぶと 02 で開きます。';
+    const hint = copy.body('hint');
     const detail = h('p', { class: 'entry-detail' }, hint);
     const chips = entries.map((index, k) => {
       const entry = cf.pool[index]!;
@@ -442,7 +411,7 @@ export function mountSource(
         : spots.indexOf(first) < spotOrder
           ? first.line
             ? `${first.line} 行目と共有`
-            : `${first.title}と共有`
+            : `${copy.title(first.id)}と共有`
           : '共有';
       const chip = h(
         'button',
@@ -485,7 +454,7 @@ export function mountSource(
       h(
         'div',
         { class: 'effects-head' },
-        h('h3', {}, spot.title),
+        h('h3', {}, copy.title(spot.id)),
         h('p', { class: 'sub' }, spot.line ? `${spot.line} 行目 · ${showable(spot.match!)}` : 'javac が付け足すもの'),
         h(
           'div',
@@ -503,7 +472,7 @@ export function mountSource(
         h('span', { class: 'stat' }, h('b', {}, String(entries.length - fresh.length)), '共有'),
         h('span', { class: 'stat' }, h('b', {}, String(effect.insns.length)), '命令'),
       ),
-      h('div', { class: 'callout', style: '--c: var(--orange)' }, h('div', {}, rich(spot.note))),
+      h('div', { class: 'callout', style: '--c: var(--orange)' }, h('div', {}, rich(copy.body(spot.id)))),
       h('div', { class: 'strip mini-strip', style: `--n:${cf.poolCount}` }, tiles),
       effect.insns.length
         ? h(
@@ -557,7 +526,7 @@ export function mountSource(
         'div',
         { class: 'insp-section' },
         h('h4', {}, `使うエントリ · ${entries.length}`),
-        entries.length ? h('div', { class: 'echips' }, chips) : h('p', { class: 'insp-desc' }, 'ありません。'),
+        entries.length ? h('div', { class: 'echips' }, chips) : h('p', { class: 'insp-desc' }, copy.body('none')),
         entries.length ? detail : null,
       ),
     );

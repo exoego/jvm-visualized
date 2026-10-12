@@ -1,28 +1,12 @@
 import { cpRaw, cpText, CP_SECTION, hexBytes, holdsValue, prettyDescriptor } from '../classfile/describe';
 import type { ClassFile, CpEntry, CpKind, Part } from '../classfile/types';
+import copyText from '../copy/pool.md?raw';
+import { loadCopy } from '../ui/copy';
 import { fitMode, fitter, h, rich, showable, specLink, svg } from '../ui/dom';
 import { hideTooltip, showTooltip } from '../ui/tooltip';
 import { buildGraph, edgePath, NODE_H, NODE_W, nodeText } from './graph';
 
-const KIND_DESC: Record<CpKind, string> = {
-  Utf8: '文字列そのものを持つエントリです。クラス名、メソッド名、記述子、属性名は、すべて最終的に Utf8 エントリを指します。長さ (u2) のあとに Modified UTF-8 のバイト列が続きます。',
-  Class: 'クラスまたはインターフェースへの参照。中身は名前 (Utf8) の番号だけです。',
-  String: '`java.lang.String` の定数。文字そのものは持たず、Utf8 の番号を持ちます。',
-  Integer: '4 バイトの int 定数。-32768〜32767 に収まる値は、ふつう命令 (bipush, sipush) に直接埋め込まれるので、ここには入りません。',
-  Float: '4 バイトの float 定数 (IEEE 754)。',
-  Long: '8 バイトの long 定数。**定数プールの番号を 2 つ使う**ので、次の番号は欠番になります。',
-  Double: '8 バイトの double 定数。Long と同じく番号を 2 つ使います。',
-  Fieldref: 'フィールドへの参照。「どのクラスの」(class_index) と「どの名前と型の」(name_and_type_index) の 2 つの番号の組です。',
-  Methodref: 'クラスのメソッドへの参照。「どのクラスの」と「どの名前と記述子の」の 2 つの番号の組です。',
-  InterfaceMethodref: 'インターフェースのメソッドへの参照。形は Methodref と同じです。',
-  NameAndType: '名前と記述子の組。どのクラスのものかは持たないので、別々のクラスへの参照からも共有できます。',
-  MethodHandle: 'メソッドハンドル。reference_kind が「static メソッドを呼ぶ」「フィールドを読む」などの使い方を表します。',
-  MethodType: 'メソッドの型 (記述子) だけを表す定数です。',
-  Dynamic: 'ブートストラップメソッドで値を計算する定数 (Java 11〜)。',
-  InvokeDynamic: 'invokedynamic 命令の呼び出し地点。呼び出し先を決めるブートストラップメソッドを、BootstrapMethods 属性の番号で指します。',
-  Module: 'モジュール名。module-info.class だけで使われます。',
-  Package: 'パッケージ名。module-info.class だけで使われます。',
-};
+const copy = loadCopy(copyText, 'pool');
 
 const PICKS: { label: string; find: (cf: ClassFile) => number | undefined }[] = [
   { label: 'メソッド呼び出し', find: (cf) => firstInsn(cf, 'invokevirtual') },
@@ -150,7 +134,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
           h('h3', { class: 'panel-title' }, '参照のつながり', crumbs),
           picks,
           graphWrap,
-          h('p', { class: 'graph-hint' }, '点線は、このエントリを指している側です。ノードを選ぶと、その先をたどれます。'),
+          h('p', { class: 'graph-hint' }, copy.body('graph-hint')),
         ),
         inspector,
       ),
@@ -303,7 +287,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
         java ? h('dt', {}, 'Java では') : null,
         java ? h('dd', { class: 'insp-java' }, java) : null,
       ),
-      h('p', { class: 'insp-desc' }, rich(KIND_DESC[entry.kind])),
+      h('p', { class: 'insp-desc' }, rich(copy.body(entry.kind))),
     ];
 
     const groups = entry.parts.map((part) => {
@@ -359,7 +343,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
         h(
           'div',
           { class: 'callout', style: '--c: var(--pink)' },
-          h('div', {}, rich('`\\u0001` は文字列連結のレシピで「ここに引数が入る」という印です。StringConcatFactory がこのレシピを読んで、連結の方法を決めます。')),
+          h('div', {}, rich(copy.body('recipe-note'))),
         ),
       );
     }
@@ -368,7 +352,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
         h(
           'div',
           { class: 'callout', style: '--c: var(--mint)' },
-          h('div', {}, rich(`次の \`#${entry.index + 1}\` は番号としては有効ですが、使えない扱いです。仕様書にも「振り返れば、8 バイトの定数に 2 つのエントリを使わせたのはまずい選択だった」とあります (§4.4.5)。`)),
+          h('div', {}, rich(copy.body('long-note', { next: entry.index + 1 }))),
         ),
       );
     }
@@ -392,7 +376,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
               }),
               rest.length ? h('span', { class: 'uchip more', title: rest.map((u) => u.label).join('\n') }, `ほか ${rest.length}`) : null,
             )
-          : h('p', { class: 'insp-desc' }, 'どこからも参照されていません。'),
+          : h('p', { class: 'insp-desc' }, copy.body('no-usages')),
       ),
     );
 
@@ -458,7 +442,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
       h(
         'p',
         { class: 'insp-desc' },
-        rich('定数プールではなく、class ファイルの末尾にある **BootstrapMethods 属性**の中の表の 1 行です。だから `#` の番号はありません。invokedynamic が初めて実行されるとき、JVM はこの行のメソッドハンドルを静的引数と一緒に呼び出して、呼び出し先を決めます (§5.4.3.6)。'),
+        rich(copy.body('bsm-desc')),
       ),
       h(
         'div',
@@ -472,9 +456,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
         h(
           'div',
           {},
-          rich(
-            `この表は \`attributes[${attrIndex}]\` の BootstrapMethods 属性 (offset ${attr.span.start} · ${attrSize} B) の中にあります。属性の先頭は、名前 \`#${attr.nameIndex}\`、長さ、行数の順に並び、その後ろに各行が続きます。`,
-          ),
+          rich(copy.body('bsm-attr', { attr: attrIndex, offset: attr.span.start, size: attrSize, nameIndex: attr.nameIndex })),
         ),
       ),
       h(
@@ -489,7 +471,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
                 h('button', { class: 'uchip link', type: 'button', title: '定数プール', onclick: () => select(e.index) }, `#${e.index} ${e.kind} の bootstrap_method_attr_index`),
               ),
             )
-          : h('p', { class: 'insp-desc' }, 'どこからも参照されていません。'),
+          : h('p', { class: 'insp-desc' }, copy.body('no-usages')),
       ),
     );
     inspectorFit.update();
