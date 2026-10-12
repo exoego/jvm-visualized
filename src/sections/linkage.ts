@@ -227,8 +227,8 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
     h(
       'div',
       { class: 'rt-col' },
-      panel('grow', 'コンパイル時の bar/Bar 1.0', null, oldList),
-      panel('grow', '実行時の bar/Bar 2.0', null, newList),
+      panel('grow', 'コンパイル時の bar/Bar v1.0', null, oldList),
+      panel('grow', '実行時の bar/Bar v2.0', null, newList),
     ),
     h(
       'div',
