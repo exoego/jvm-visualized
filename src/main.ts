@@ -35,10 +35,6 @@ async function main(): Promise<void> {
     dump.append(h('span', { class: 'magic' }, text.slice(0, 11)), h('span', { class: 'lit' }, text.slice(11, 240)), text.slice(240));
   }
 
-  mount('meta')?.append(
-    h('span', { class: 'meta-pill' }, 'Greeter.java'),
-    h('span', { class: 'meta-pill' }, 'javac 21 · --release 21'),
-  );
   mount('footer-meta')?.append(`javac 21.0.2 --release 21 でコンパイルした ${size} バイト`);
 
   mountStart(mount('start')!, cf, javaSource);
