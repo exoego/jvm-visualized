@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="javac が出力した class ファイルを JVM 仕様に沿って 1 バイトずつ読み、定数プールの中身と実行時の解決をアニメーションで解説します。"
+      content="javac が出力したクラスファイルを JVM 仕様に沿って 1 バイトずつ読み、定数プールの中身と実行時の解決をアニメーションで解説します。"
     />
     <title>JVM Visualized</title>
     <link rel="stylesheet" href="/src/style.css" />
@@ -48,10 +48,10 @@
       <section id="start" class="chapter" style="--accent: var(--text-2)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">00</span>題材<span class="spec">Greeter.java</span></p>
-          <h2>題材は <span data-bind="lines"></span> 行の Greeter.java</h2>
+          <h2><span data-bind="lines"></span> 行から生まれた <span data-bind="size"></span> バイト</h2>
           <p class="lede">
-            題材は、名前を受け取ってあいさつを返すだけの小さなクラス Greeter です。javac でコンパイルすると、<span data-bind="size"></span>
-            バイトの Greeter.class ができます。このページでは、その Greeter.class を JVM 仕様のとおりに読み、JVM がそれをどう実行するかを追います。
+            この小さなクラスを javac でコンパイルすると、Greeter.class ができます。
+            その中身が何を表し、JVM がどう実行するかを追います。
           </p>
         </header>
         <div class="stage reveal" data-mount="start"></div>
@@ -59,11 +59,11 @@
 
       <section id="structure" class="chapter" style="--accent: var(--cyan)">
         <header class="chapter-head reveal">
-          <p class="eyebrow"><span class="num">01</span>ClassFile 構造<span class="spec">§4.1</span></p>
-          <h2>ClassFile 構造体を先頭から読む</h2>
+          <p class="eyebrow"><span class="num">01</span>class ファイルの構造<span class="spec">§4.1</span></p>
+          <h2>バイト列のどこに何があるか見ていく</h2>
           <p class="lede">
-            Greeter.class の <span data-bind="size"></span> バイトには、区切り文字も目次もありません。JVMS §4.1 の ClassFile
-            構造体の定義どおりに先頭から順に読み、読み取った count や length の値から次の項目の長さを決めます。JVM と同じこの手順で、末尾まで読みます。
+            Greeter.class の <span data-bind="size"></span> バイトには区切り文字も目次もありません。JVMS §4.1 の定義
+            により、どこにどんな項目がどんな長さであるかが決まっています。
           </p>
         </header>
         <div class="stage reveal" data-mount="structure"></div>
