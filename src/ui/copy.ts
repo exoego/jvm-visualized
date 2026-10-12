@@ -6,30 +6,38 @@ export interface Copy {
   step(key: string, params?: Params): { title: string; body: string };
 }
 
-interface Entry {
+export interface Entry {
   title?: string;
-  lines: string[];
+  body: string;
+  line: number;
 }
 
 // src/copy/*.md を読む。`<!-- key -->` の行で項目が始まり、直後の `## ` 行がラベル、続く行が本文。
-// key をコメントにしているのは、Markdown のプレビューに出さないため。{name} は params の値で埋める。
-export function loadCopy(markdown: string, name: string): Copy {
+// key をコメントにしているのは、Markdown のプレビューに出さないため。
+export function parseCopy(markdown: string): Map<string, Entry> {
   const entries = new Map<string, Entry>();
   let current: Entry | undefined;
-  for (const line of markdown.split('\n')) {
+  markdown.split('\n').forEach((line, i) => {
     const key = line.match(/^<!--\s*([\w.-]+)\s*-->$/);
     if (key) {
-      current = { lines: [] };
+      current = { body: '', line: i + 1 };
       entries.set(key[1], current);
-      continue;
+      return;
     }
-    if (!current || line.startsWith('<!--')) continue;
-    if (line.startsWith('## ') && current.title === undefined && current.lines.every((l) => !l.trim())) {
+    if (!current || line.startsWith('<!--')) return;
+    if (line.startsWith('## ') && current.title === undefined && !current.body.trim()) {
       current.title = line.slice(3).trim();
-      continue;
+      return;
     }
-    current.lines.push(line);
-  }
+    current.body += `${line}\n`;
+  });
+  for (const e of entries.values()) e.body = e.body.trim();
+  return entries;
+}
+
+// {name} は params の値で埋める
+export function loadCopy(markdown: string, name: string): Copy {
+  const entries = parseCopy(markdown);
 
   const entry = (key: string): Entry => {
     const found = entries.get(key);
@@ -49,7 +57,7 @@ export function loadCopy(markdown: string, name: string): Copy {
       return fill(key, title, params);
     },
     body(key, params = {}) {
-      return fill(key, entry(key).lines.join('\n').trim(), params);
+      return fill(key, entry(key).body, params);
     },
     step(key, params = {}) {
       return { title: copy.title(key, params), body: copy.body(key, params) };
