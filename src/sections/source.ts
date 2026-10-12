@@ -369,7 +369,7 @@ export function mountSource(
         h(
           'div',
           { class: 'panel code-panel', style: 'padding:0;overflow:hidden' },
-          h('h3', { class: 'panel-title', style: 'padding:16px 20px 0' }, 'Greeter.java', h('span', { class: 'aside' }, '下線の部分を選べます')),
+          h('h3', { class: 'panel-title', style: 'padding:16px 20px 0' }, 'Greeter.java', h('span', { class: 'aside' }, '下線をクリックして対応するエントリを表示')),
           code,
           extraBar,
         ),
