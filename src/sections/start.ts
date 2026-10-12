@@ -1,8 +1,12 @@
 import { hex } from '../classfile/describe';
 import type { ClassFile } from '../classfile/types';
+import copyText from '../copy/start.md?raw';
+import { loadCopy } from '../ui/copy';
 import { h, reducedMotion } from '../ui/dom';
 import { onceVisible } from '../ui/reveal';
 import { tokenize } from './source';
+
+const copy = loadCopy(copyText, 'start');
 
 const PREVIEW_ROWS = 4;
 
@@ -61,7 +65,7 @@ export function mountStart(root: HTMLElement, cf: ClassFile, source: string): vo
     h(
       'p',
       { class: 'start-note' },
-      'テキストではなくバイナリなので、人が読むための区切りや見出しはありません。01 では、これを JVM と同じ順番で先頭から読みます。',
+      copy.body('dump-note'),
     ),
   );
 
@@ -77,7 +81,7 @@ export function mountStart(root: HTMLElement, cf: ClassFile, source: string): vo
         ? h(
             'p',
             { class: 'start-code-note' },
-            `${repeated[0]} 行目と ${repeated[1]} 行目は同じ呼び出しを 2 回しています。これは意図的で、2 回目では定数プールのエントリが増えないこと (03) と、JVM が解決をやり直さないこと (04) を確かめるためです。`,
+            copy.body('repeat-note', { first: repeated[0], second: repeated[1] }),
           )
         : null,
     ),

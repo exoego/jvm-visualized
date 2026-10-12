@@ -1,7 +1,11 @@
 import { cpText, prettyDescriptor } from '../classfile/describe';
 import type { ClassFile, Member } from '../classfile/types';
+import copyText from '../copy/linkage.md?raw';
+import { loadCopy } from '../ui/copy';
 import { fitter, h, rich, showable, specLink, type Fitter } from '../ui/dom';
 import { Player } from '../ui/player';
+
+const copy = loadCopy(copyText, 'linkage');
 
 type Tone = 'load' | 'resolve' | 'exec' | 'error' | 'done';
 
@@ -69,31 +73,28 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
   const natRef = foo.pool[callRef]!.refs[1].index;
   const gone = !barNew.methods.some((m) => m.name === callName);
 
+  const params = { owner, method: callName, classRef, ctorRef, callRef, natRef, ref: cpText(foo, callRef) };
   const STEPS: Step[] = [
     {
-      title: 'コンパイル時と実行時で Bar のバージョンが違う',
-      body: `\`foo/Foo\` は \`${owner}\` の **1.0** に対してコンパイルされました。実行時のクラスパスに入っているのは **2.0** です。1.0 にあった \`${callName}()\` は、2.0 では名前が変わっています。実行時に javac は関与しません。JVM が読むのは、この 2 つの class ファイルです。`,
+      ...copy.step('versions', params),
       tone: 'load',
       bar: 'old',
     },
     {
-      title: '1.0 で実行すると正常に終わる',
-      body: 'クラスパスに 1.0 を置いて実行すると、`Foo.foo()` は `bar.Bar#buz` と出力して正常に終わります。',
+      ...copy.step('run-old'),
       tone: 'exec',
       run: 'old',
       bar: 'old',
     },
     {
-      title: '2.0 に差し替えて実行する',
-      body: '依存の解決でバージョンが入れ替わり、クラスパスの `bar/Bar` が 2.0 になりました。`Foo.class` は再コンパイルしていません。`Main.main` から `Foo.foo()` が呼ばれます。',
+      ...copy.step('run-new'),
       tone: 'exec',
       run: 'cmd',
       bar: 'new',
       pc: insns[0].pc,
     },
     {
-      title: `\`new #${classRef}\` — Class エントリは解決できる`,
-      body: `\`#${classRef}\` は Class エントリで、名前は \`${owner}\` です。クラスパスから 2.0 の \`${owner}\` が見つかるので、解決は成功します。ここで確認されるのは**クラスの存在だけ**で、メソッドの有無はまだ確認されません。`,
+      ...copy.step('new', params),
       tone: 'resolve',
       specs: ['5.4.3.1'],
       pc: insns[0].pc,
@@ -103,8 +104,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       bar: 'new',
     },
     {
-      title: `\`invokespecial #${ctorRef}\` — コンストラクタの Methodref も解決できる`,
-      body: `\`${owner}.<init>:()V\` は 2.0 にもあります。解決できるので、インスタンスが作られます。`,
+      ...copy.step('ctor', params),
       tone: 'resolve',
       specs: ['5.4.3.3'],
       pc: insns.find((i) => i.cp === ctorRef)!.pc,
@@ -114,8 +114,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       bar: 'new',
     },
     {
-      title: `\`invokevirtual #${callRef}\` — ${callName}() の Methodref を解決する`,
-      body: `\`#${callRef}\` は \`${cpText(foo, callRef)}\` です。class_index \`#${classRef}\` は解決済みなので、NameAndType \`#${natRef}\` から名前 \`${callName}\` と記述子 \`()V\` を取り出し、\`${owner}\` とその親クラスからメソッドを探します。`,
+      ...copy.step('call', params),
       tone: 'resolve',
       specs: ['5.4.3.3'],
       pc: insns.find((i) => i.cp === callRef)!.pc,
@@ -124,14 +123,13 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       run: 'cmd',
       bar: 'new',
       chain: [
-        { text: `class_index \`#${classRef}\` は解決済み → \`${owner}\``, state: 'done' },
-        { text: `name_and_type_index \`#${natRef}\` → \`${callName}\` \`()V\``, state: 'done' },
-        { text: `\`${owner}\` とその親クラスから探す`, state: 'active' },
+        { text: copy.title('chain-class', params), state: 'done' },
+        { text: copy.title('chain-nat', params), state: 'done' },
+        { text: copy.title('chain-lookup', params), state: 'active' },
       ],
     },
     {
-      title: `${callName}() が見つからず NoSuchMethodError`,
-      body: `2.0 の \`${owner}\` には \`${callName}()\` がありません。親クラス \`java/lang/Object\` にもないので、メソッドの探索は失敗します。JVM は \`NoSuchMethodError\` を投げます。これは \`IncompatibleClassChangeError\` のサブクラスで、さらにその親が **LinkageError** です。`,
+      ...copy.step('error', params),
       tone: 'error',
       specs: ['5.4.3.3', '5.4.3'],
       pc: insns.find((i) => i.cp === callRef)!.pc,
@@ -142,15 +140,14 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       bar: 'new',
       run: 'new',
       chain: [
-        { text: `class_index \`#${classRef}\` は解決済み → \`${owner}\``, state: 'done' },
-        { text: `name_and_type_index \`#${natRef}\` → \`${callName}\` \`()V\``, state: 'done' },
-        { text: `\`${owner}\` とその親クラスから探す → 見つからない`, state: 'done' },
-        { text: '`NoSuchMethodError` を投げる', state: 'active' },
+        { text: copy.title('chain-class', params), state: 'done' },
+        { text: copy.title('chain-nat', params), state: 'done' },
+        { text: copy.title('chain-missing', params), state: 'done' },
+        { text: copy.title('chain-throw'), state: 'active' },
       ],
     },
     {
-      title: '同じ命令を再実行しても同じエラーになる',
-      body: '一度解決に失敗した記号参照は、その後の解決も同じエラーになります。探索はやり直されません。エラーが投げられるのは、その参照を**使う命令を実行したとき**です。そのため、実行されないコードパスにある参照は、いつまでも検出されません。',
+      ...copy.step('again'),
       tone: 'error',
       specs: ['5.4.3'],
       resolved: ['class', 'ctor'],
@@ -160,8 +157,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       run: 'new',
     },
     {
-      title: '実行せずに検出する方法',
-      body: `\`Foo.class\` の定数プールには \`${cpText(foo, callRef)}\` という**名前と記述子**が残っています。クラスパスにある class ファイルを読んで突き合わせれば、実行せずに JVM と同じ検査ができます。`,
+      ...copy.step('detect', params),
       tone: 'done',
       specs: ['4.4.2', '5.4.3.3'],
       resolved: ['class', 'ctor'],
@@ -187,16 +183,8 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
   const noteBox = h(
     'div',
     { class: 'panel check-note' },
-    h('h3', { class: 'panel-title' }, '実行前に検出する'),
-    h(
-      'p',
-      {},
-      rich(
-        '定数プールにあるのは名前と記述子だけなので、実行しなくても、クラスパス上の class ファイルと突き合わせれば同じ検査ができます。ライブラリの新旧を比べて、壊れる参照だけを報告するツールもあります。',
-      ),
-      h('a', { href: 'https://github.com/exoego/uika', target: '_blank', rel: 'noopener' }, ' Uika '),
-      rich('は、PR の時点で `NoSuchMethodError` などを検出します。'),
-    ),
+    h('h3', { class: 'panel-title' }, copy.title('note')),
+    h('p', {}, rich(copy.body('note'))),
   );
 
   const fitters: Fitter[] = [];

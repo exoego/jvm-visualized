@@ -9,6 +9,8 @@ import {
   prettyDescriptor,
 } from '../classfile/describe';
 import type { Attribute, ClassFile, CpEntry, Member, Part, TopItem } from '../classfile/types';
+import copyText from '../copy/structure.md?raw';
+import { loadCopy } from '../ui/copy';
 import { FIT_QUERY, fitMode, fitter, h, reducedMotion, rich, showable, specLink } from '../ui/dom';
 import { Player } from '../ui/player';
 import { onceVisible } from '../ui/reveal';
@@ -32,6 +34,8 @@ const LINES: { key: string; type: string; name: string; section: TopItem['sectio
   { key: 'attributes_count', type: 'u2', name: 'attributes_count', section: 'attributes' },
   { key: 'attributes', type: 'attribute_info', name: 'attributes[attributes_count]', section: 'attributes' },
 ];
+
+const copy = loadCopy(copyText, 'structure');
 
 const SECTION_LABEL: Record<TopItem['section'], string> = {
   header: 'ヘッダ',
@@ -96,30 +100,30 @@ function explainAttribute(cf: ClassFile, a: Attribute): string {
   switch (a.name) {
     case 'SourceFile': {
       const p = a.parts.find((x) => x.name === 'sourcefile_index');
-      return `コンパイル元のファイル名 \`${p?.cp ? cpText(cf, p.cp) : '?'}\` を残します。スタックトレースの表示などに使われます。`;
+      return copy.body('attr-sourcefile', { name: p?.cp ? cpText(cf, p.cp) : '?' });
     }
     case 'BootstrapMethods': {
       const bms = a.bootstrapMethods ?? [];
       const first = bms[0];
-      return `invokedynamic が使う**ブートストラップメソッド**の表です。${bms.length} 件あり、0 番はメソッドハンドル \`#${first?.ref}\` と静的引数 ${first?.args.length ?? 0} 個の組です。`;
+      return copy.body('attr-bootstrap', { count: bms.length, ref: first?.ref ?? 0, args: first?.args.length ?? 0 });
     }
     case 'InnerClasses': {
       const names = a.parts
         .filter((p) => p.name.endsWith('inner_class_info_index') && p.cp)
         .map((p) => `\`${cpText(cf, p.cp!)}\``);
-      return `入れ子のクラスどうしの関係を記録します。定数プールに入れ子クラス ${names.join('、')} の Class エントリがあるので、この属性が必要になります。`;
+      return copy.body('attr-innerclasses', { names: names.join('、') });
     }
     case 'NestHost':
     case 'NestMembers':
-      return `同じネストに属するクラスどうしが private メンバーにアクセスするための情報です (Java 11〜)。`;
+      return copy.body('attr-nest');
     case 'Record':
-      return `record クラスの構成要素を記録します (Java 16〜)。`;
+      return copy.body('attr-record');
     case 'PermittedSubclasses':
-      return `sealed クラスを継承できるクラスの一覧です (Java 17〜)。`;
+      return copy.body('attr-permitted');
     case 'Signature':
-      return `ジェネリクスの型情報を残します。記述子には現れない型引数がここに入ります。`;
+      return copy.body('attr-signature');
     default:
-      return `${a.name} 属性。${size} バイトあります。知らない名前の属性は、JVM は読み飛ばします。`;
+      return copy.body('attr-unknown', { name: a.name, size });
   }
 }
 
@@ -136,21 +140,13 @@ function explain(cf: ClassFile, item: TopItem): Explanation {
 
   switch (item.name) {
     case 'magic':
-      return scalar(
-        `0x${hex(cf.magic, 8)}`,
-        'class ファイルは必ずこの 4 バイトで始まります。JVM はまずここを見て、読もうとしているのが class ファイルかどうかを確かめます。',
-      );
+      return scalar(`0x${hex(cf.magic, 8)}`, copy.body('magic'));
     case 'minor_version':
-      return scalar(
-        String(cf.minor),
-        cf.minor === 65535
-          ? '65535 は、プレビュー機能を使ったクラスの印です。'
-          : 'マイナーバージョン。Java SE 12 以降は、プレビュー機能を使うクラスだけが 65535 を使い、それ以外は 0 です。',
-      );
+      return scalar(String(cf.minor), copy.body(cf.minor === 65535 ? 'minor-preview' : 'minor'));
     case 'major_version':
       return scalar(
         `${cf.major} · ${javaVersion(cf.major)}`,
-        `${cf.major} は ${javaVersion(cf.major)} の形式です。JVM は、自分が対応していない新しいバージョンのファイルを \`UnsupportedClassVersionError\` で拒否します。`,
+        copy.body('major', { major: cf.major, java: javaVersion(cf.major) }),
         '4.1',
         `${cf.major} (${javaVersion(cf.major)})`,
       );
@@ -159,10 +155,7 @@ function explain(cf: ClassFile, item: TopItem): Explanation {
       const entries = cf.pool.filter(Boolean).length;
       return scalar(
         `${cf.poolCount} · 番号は #1〜#${slots}`,
-        `このファイルの定数プールには、**#1〜#${slots} の ${slots} 個**の番号があります。${cf.poolCount} − 1 なのは、番号が 0 ではなく 1 から始まるからです。0 番は使わない決まりで、super_class などで「何も指していない」印に使われます。` +
-          (entries !== slots
-            ? `なお Long と Double は 1 つで番号を 2 つ使うので、実際に入っているエントリは ${entries} 個です。`
-            : ''),
+        copy.body('pool-count', { slots, count: cf.poolCount }) + (entries !== slots ? copy.body('pool-count-long', { entries }) : ''),
         '4.1',
         String(cf.poolCount),
       );
@@ -176,10 +169,8 @@ function explain(cf: ClassFile, item: TopItem): Explanation {
         title: 'constant_pool',
         value: `${entries} エントリ · ${bytes} バイト`,
         body:
-          `ファイルの **${pct}%** を占める表です。エントリの長さはまちまちで、先頭 1 バイトの tag を読むまで、そのエントリが何バイトあるかはわかりません。` +
-          (skipped.length
-            ? `Long と Double は番号を 2 つ使うので、${skipped.map((i) => `\`#${i}\``).join('、')} は欠番です。`
-            : ''),
+          copy.body('pool', { pct }) +
+          (skipped.length ? copy.body('pool-skipped', { skipped: skipped.map((i) => `\`#${i}\``).join('、') }) : ''),
         spec: '4.4',
         summary: `${entries} エントリ`,
         groups: [],
@@ -188,42 +179,32 @@ function explain(cf: ClassFile, item: TopItem): Explanation {
     case 'access_flags':
       return scalar(
         `0x${hex(cf.accessFlags, 4)}`,
-        `${accessFlagNames(cf.accessFlags, 'class').map((n) => `\`${n}\``).join(' | ')}。` +
-          (cf.accessFlags & 0x20
-            ? 'ACC_SUPER は古い互換性のためのフラグで、Java SE 8 以降の JVM は常に立っているものとして扱います。'
-            : ''),
+        copy.body('access-flags', { flags: accessFlagNames(cf.accessFlags, 'class').map((n) => `\`${n}\``).join(' | ') }) +
+          (cf.accessFlags & 0x20 ? copy.body('access-super') : ''),
       );
     case 'this_class': {
       const entry = cf.pool[cf.thisClass];
-      const nameRef = entry?.refs[0]?.index;
+      const nameRef = entry?.refs[0]?.index ?? 0;
       return scalar(
         `#${cf.thisClass}`,
-        `このクラス自身。ここにあるのは名前の文字列ではなく、定数プールの**番号**です。\`#${cf.thisClass}\` は Class エントリで、その name_index \`#${nameRef}\` の Utf8 に \`${cpText(cf, cf.thisClass)}\` が入っています。この項目が定数プールより後ろにあるのは、ここが番号で**指す側**だからです。先に定数プールを読んであるので、番号に出会った時点で中身を引けます。`,
+        copy.body('this-class', { index: cf.thisClass, nameRef, name: cpText(cf, cf.thisClass) }),
         '4.1',
         `#${cf.thisClass} ${cpText(cf, cf.thisClass)}`,
       );
     }
     case 'super_class': {
-      if (cf.superClass === 0) {
-        return scalar('0', '0 は親クラスがないことを表します。java/lang/Object と module-info だけがこうなります。');
-      }
+      if (cf.superClass === 0) return scalar('0', copy.body('super-none'));
       const name = cpText(cf, cf.superClass);
       return scalar(
         `#${cf.superClass}`,
-        `親クラス。\`#${cf.superClass}\` → \`${name}\`。` +
-          (name === 'java/lang/Object' ? 'extends を書かないクラスでは java/lang/Object になります。' : ''),
+        copy.body('super', { index: cf.superClass, name }) + (name === 'java/lang/Object' ? copy.body('super-object') : ''),
         '4.1',
         `#${cf.superClass} ${name}`,
       );
     }
     case 'interfaces_count': {
       const n = cf.interfaces.length;
-      return scalar(
-        String(n),
-        n === 0
-          ? '実装しているインターフェースの数。このクラスにはないので、続く interfaces 配列は 0 バイトです。'
-          : `実装しているインターフェースの数。続く ${n} 個の u2 が、それぞれ Class エントリを指します。`,
-      );
+      return scalar(String(n), n === 0 ? copy.body('interfaces-none') : copy.body('interfaces', { n }));
     }
     case 'interfaces':
       return scalar(
@@ -233,30 +214,41 @@ function explain(cf: ClassFile, item: TopItem): Explanation {
         cf.interfaces.map((i) => cpText(cf, i).split('/').pop()).join(', '),
       );
     case 'fields_count':
-      return scalar(String(cf.fields.length), 'このクラスが宣言しているフィールドの数です。継承したフィールドは含みません。');
+      return scalar(String(cf.fields.length), copy.body('fields-count'));
     case 'methods_count':
       return scalar(
         String(cf.methods.length),
-        'このクラスが宣言しているメソッドの数です。' +
-          (cf.methods.some((m) => m.name === '<init>') ? 'コンストラクタも `<init>` という名前のメソッドとして数えます。' : ''),
+        copy.body('methods-count') + (cf.methods.some((m) => m.name === '<init>') ? copy.body('methods-ctor') : ''),
       );
     case 'attributes_count':
-      return scalar(String(cf.attributes.length), 'クラス全体に付く属性の数です。');
+      return scalar(String(cf.attributes.length), copy.body('attributes-count'));
   }
 
   if (item.member) {
     const m = item.member;
     const code = m.attributes.find((a) => a.name === 'Code')?.code;
     const cv = m.attributes.find((a) => a.name === 'ConstantValue');
-    let body =
-      `名前も型も、定数プールの番号で持ちます。name_index \`#${m.nameIndex}\` → \`${showable(m.name)}\`、descriptor_index \`#${m.descriptorIndex}\` → \`${m.descriptor}\`。`;
-    if (m.name === '<init>') body = `コンストラクタ。${body}`;
-    if (m.name === '<clinit>') body = `クラスの初期化メソッド。${body}`;
+    let body = copy.body('member', {
+      nameIndex: m.nameIndex,
+      name: showable(m.name),
+      descriptorIndex: m.descriptorIndex,
+      descriptor: m.descriptor,
+    });
+    if (m.name === '<init>') body = copy.body('member-ctor') + body;
+    if (m.name === '<clinit>') body = copy.body('member-clinit') + body;
     if (cv?.constantValue) {
-      body += `ConstantValue 属性が \`#${cv.constantValue}\` (${cf.pool[cv.constantValue]?.kind} ${cpText(cf, cv.constantValue)}) を指しています。`;
+      body += copy.body('member-constant', {
+        index: cv.constantValue,
+        kind: cf.pool[cv.constantValue]?.kind ?? '',
+        value: cpText(cf, cv.constantValue),
+      });
     }
     if (code) {
-      body += `Code 属性に ${code.codeSpan.end - code.codeSpan.start} バイトのバイトコードがあり、max_stack = ${code.maxStack}、max_locals = ${code.maxLocals} です。`;
+      body += copy.body('member-code', {
+        bytes: code.codeSpan.end - code.codeSpan.start,
+        maxStack: code.maxStack,
+        maxLocals: code.maxLocals,
+      });
     }
     return {
       title: `${item.name} · ${showable(m.name)}`,

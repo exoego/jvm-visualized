@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { TextlintKernelDescriptor } from '@textlint/kernel';
 import { createLinter, loadFixerFormatter, loadLinterFormatter, loadTextlintrc } from 'textlint';
+import labelHeadings from './filters/label-headings.js';
 import templateHoles from './filters/template-holes.js';
 import htmlProse from './plugins/html-prose.js';
 import tsStrings from './plugins/ts-strings.js';
@@ -8,7 +9,7 @@ import noPunctuationInHeadings from './rules/no-punctuation-in-headings.js';
 
 // ローカルのプラグインとルールは .textlintrc からは読めないので、ここで登録して CLI の代わりにする。
 // "html" は .textlintrc の textlint-plugin-html を、整形用の空白を落とす版で置き換える。
-const FILES = ['index.html', 'src/**/*.ts'];
+const FILES = ['index.html', 'src/copy/*.md', 'src/**/*.ts'];
 
 const args = process.argv.slice(2);
 const fix = args.includes('--fix');
@@ -16,7 +17,10 @@ const files = args.filter((a) => !a.startsWith('--'));
 
 const local = new TextlintKernelDescriptor({
   rules: [{ ruleId: 'no-punctuation-in-headings', rule: noPunctuationInHeadings }],
-  filterRules: [{ ruleId: 'template-holes', rule: templateHoles }],
+  filterRules: [
+    { ruleId: 'template-holes', rule: templateHoles },
+    { ruleId: 'label-headings', rule: labelHeadings },
+  ],
   plugins: [
     { pluginId: 'html', plugin: htmlProse },
     { pluginId: 'ts-strings', plugin: tsStrings },

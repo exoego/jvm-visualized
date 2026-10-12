@@ -1,5 +1,9 @@
 import { cpText, prettyDescriptor } from '../classfile/describe';
 import type { ClassFile, CodeInfo, CpKind, Instruction, Member } from '../classfile/types';
+import copyText from '../copy/machine.md?raw';
+import { loadCopy } from '../ui/copy';
+
+const copy = loadCopy(copyText, 'machine');
 
 export type Value = { t: 'ref'; id: number } | { t: 'null' };
 
@@ -239,8 +243,7 @@ class Machine {
 
     this.classes.push({ name: this.self, loader: 'アプリケーション', phase: 1 });
     this.emit({
-      title: 'JVM を起動し、Greeter をロード',
-      body: '`java Greeter` を実行すると、JVM は最初のクラスとして Greeter を作ります。クラスローダーが Greeter.class のバイト列を読み、クラスを作ります。Object や System などの JDK のクラスは、起動の途中ですでに用意されています。',
+      ...copy.step('boot'),
       tone: 'load',
       specs: ['5.2', '5.3'],
       focusClasses: [this.self],
@@ -248,8 +251,7 @@ class Machine {
 
     this.buildRcp();
     this.emit({
-      title: '実行時定数プールを作る',
-      body: 'class ファイルの定数プールから、クラスごとの**実行時定数プール**ができます。ここに並ぶのは、命令が使うエントリです。クラスやメソッドへの参照は名前の文字列でできた**記号参照**のままで、まだ何にも結びついていません。',
+      ...copy.step('rcp'),
       tone: 'load',
       specs: ['5.1'],
       focusClasses: [this.self],
@@ -264,10 +266,10 @@ class Machine {
       .filter((f) => f.accessFlags & 0x0008)
       .map((f) => ({ name: f.name, value: defaultValue(f.descriptor) }));
     this.emit({
-      title: 'リンク — 検証と準備',
+      title: copy.title('link'),
       body:
-        'バイトコードが安全に実行できるかを**検証**します。続く**準備**では static フィールドの領域を作り、既定値を入れます。' +
-        (constants.length ? `\`${constants[0].name}\` はまだ ${defaultValue(constants[0].descriptor)} です。` : ''),
+        copy.body('link') +
+        (constants.length ? copy.body('link-default', { name: constants[0].name, value: defaultValue(constants[0].descriptor) }) : ''),
       tone: 'load',
       specs: ['5.4.1', '5.4.2'],
       focusClasses: [this.self],
@@ -291,17 +293,16 @@ class Machine {
         shown = entry.kind === 'Long' ? `${entry.number}L` : String(entry.number);
       }
       self.statics = self.statics?.map((st) => (st.name === field.name ? { ...st, value: shown } : st));
-      assigned.push(`\`${field.name}\` ← \`#${cvIndex}\` の ${shown}`);
+      assigned.push(copy.title('init-assigned', { name: field.name, index: cvIndex, value: shown }));
     }
     const clinit = this.methods.has('<clinit>');
     this.emit({
-      title: '初期化',
+      title: copy.title('init'),
       body:
         (assigned.length
-          ? `ConstantValue 属性を持つ static final フィールドには、ここで定数プールの値が入ります。${assigned.join('、')}。` +
-            (focusHeap.length ? 'String の値は、intern された文字列への参照です。' : '')
+          ? copy.body('init-constants', { assigned: assigned.join('、') }) + (focusHeap.length ? copy.body('init-intern') : '')
           : '') +
-        (clinit ? '続いて `<clinit>` を実行します。' : `${simple(this.self)} には \`<clinit>\` がないので、実行するコードはありません。`),
+        (clinit ? copy.body('init-clinit') : copy.body('init-no-clinit', { self: simple(this.self) })),
       tone: 'static',
       specs: ['5.5', '4.7.2'],
       focusClasses: [this.self],
@@ -313,8 +314,7 @@ class Machine {
     const main = this.methods.get('main')!;
     this.frames.push(this.frame(main, [{ t: 'ref', id: args }]));
     this.emit({
-      title: 'main を呼び出す',
-      body: '`public static void main(String[])` を呼びます。**フレーム**が 1 つ積まれ、ローカル変数 0 番に引数の配列が入ります。オペランドスタックの枠の数は、Code 属性の max_stack で決まっています。',
+      ...copy.step('main'),
       tone: 'invoke',
       specs: ['5.2', '2.6'],
       method: 'main',
@@ -359,31 +359,27 @@ class Machine {
     }
     const p = this.refParts(index);
     const isField = p.entry.kind === 'Fieldref';
-    const what = isField ? 'フィールド' : 'メソッド';
+    const what = copy.title(isField ? 'field' : 'method');
     const classRow = this.row(p.classIndex);
     const classWasResolved = classRow.state === 'resolved';
     const chain: ChainItem[] = [
       {
         text: classWasResolved
-          ? `class_index \`#${p.classIndex}\` は解決済み → \`${simple(p.className)}\``
-          : `class_index \`#${p.classIndex}\` → クラス \`${p.className}\` を解決`,
+          ? copy.title('chain-class-done', { classIndex: p.classIndex, className: simple(p.className) })
+          : copy.title('chain-class-resolve', { classIndex: p.classIndex, className: p.className }),
         state: 'done',
       },
-      { text: `name_and_type_index \`#${p.natIndex}\` → \`${p.name}\` \`${p.descriptor}\``, state: 'done' },
-      { text: `\`${simple(p.className)}\` とその親クラスから${what}を探す`, state: 'active' },
-      { text: `見つけた${what}への参照を \`#${index}\` に記録`, state: 'todo' },
+      { text: copy.title('chain-nat', { natIndex: p.natIndex, name: p.name, descriptor: p.descriptor }), state: 'done' },
+      { text: copy.title('chain-lookup', { className: simple(p.className), what }), state: 'active' },
+      { text: copy.title('chain-record', { what, index }), state: 'todo' },
     ];
     this.resolveClass(p.classIndex);
-    const jdkNote = this.cls(p.className)?.jdk && !classWasResolved
-      ? `\`${p.className}\` は JDK のクラスで、すでにロードされています。`
-      : '';
+    const jdkNote = this.cls(p.className)?.jdk && !classWasResolved ? copy.body('resolve-jdk-note', { className: p.className }) : '';
     this.emit({
-      title: `\`${insn.mnemonic} #${index}\` — 記号参照を解決する`,
+      title: copy.title('resolve', { mnemonic: insn.mnemonic, index }),
       body:
-        `\`${insn.mnemonic}\` は \`#${index}\` の ${p.entry.kind} を使います。まだ解決されていないので、ここで解決します。` +
-        (classWasResolved
-          ? `まずクラスを解決しますが、\`#${p.classIndex}\` は前の命令がすでに解決しているので、その結果を使います。`
-          : `まず class_index が指すクラスを解決し (§5.4.3.1)、次に NameAndType から名前と記述子を取り出します。${jdkNote}`),
+        copy.body('resolve', { mnemonic: insn.mnemonic, index, kind: p.entry.kind }) +
+        (classWasResolved ? copy.body('resolve-class-cached', { classIndex: p.classIndex }) : copy.body('resolve-class-fresh') + jdkNote),
       tone: 'resolve',
       specs: [isField ? '5.4.3.2' : '5.4.3.3'],
       method,
@@ -404,8 +400,8 @@ class Machine {
       : `${simple(p.className)}.${p.name}${prettyDescriptor(p.descriptor).split(' → ')[0]} の本体`;
     this.resolutions++;
     this.emit({
-      title: `\`#${index}\` を解決しました`,
-      body: `${simple(p.className)} に${what} \`${p.name}\` が見つかりました。その参照が \`#${index}\` に記録されます。この先 \`#${index}\` を使う命令は、どれも解決の手順を繰り返しません (§5.4.3)。`,
+      title: copy.title('resolved', { index }),
+      body: copy.body('resolved', { className: simple(p.className), what, name: p.name, index }),
       tone: 'resolve',
       specs: ['5.4.3'],
       method,
@@ -419,7 +415,7 @@ class Machine {
   }
 
   private cacheNote(insn: Instruction, cached: boolean): string {
-    return cached ? `\`#${insn.cp}\` は解決済みなので、記録された結果をそのまま使います。` : '';
+    return cached ? copy.body('cache-note', { index: insn.cp! }) : '';
   }
 
   private execute(): void {
@@ -440,8 +436,8 @@ class Machine {
         frame.stack.push(frame.locals[n] ?? { t: 'null' });
         this.emit({
           ...base,
-          title: `\`${insn.mnemonic}\` — ローカル変数を積む`,
-          body: `ローカル変数 ${n} 番の参照 ${this.show(frame.locals[n] ?? undefined)} を、オペランドスタックに積みます。定数プールは使いません。`,
+          title: copy.title('aload', { mnemonic: insn.mnemonic }),
+          body: copy.body('aload', { n, value: this.show(frame.locals[n] ?? undefined) }),
           tone: 'exec',
           specs: ['6.5.aload_n'],
           links: [],
@@ -454,8 +450,7 @@ class Machine {
         frame.locals[1] = v;
         this.emit({
           ...base,
-          title: '`astore_1` — ローカル変数に保存',
-          body: `スタックの一番上の参照 ${this.show(v)} を取り出し、ローカル変数 1 番に保存します。`,
+          ...copy.step('astore', { value: this.show(v) }),
           tone: 'exec',
           specs: ['6.5.astore_n'],
         });
@@ -467,8 +462,7 @@ class Machine {
         frame.stack.push(v);
         this.emit({
           ...base,
-          title: '`dup` — 一番上を複製',
-          body: 'スタックの一番上の参照を複製します。1 つはこのあとの `<init>` の呼び出しで使われ、もう 1 つがスタックに残ります。',
+          ...copy.step('dup'),
           tone: 'exec',
         });
         frame.pc = next;
@@ -483,31 +477,29 @@ class Machine {
           const nameIndex = this.cf.pool[index]!.refs[0].index;
           this.emit({
             ...base,
-            title: `\`new #${index}\` — クラスを解決する`,
-            body: `\`new\` は記号参照 \`#${index}\` を使います。まだ解決されていません。Class エントリの name_index \`#${nameIndex}\` をたどると、名前は \`${name}\` です。`,
+            ...copy.step('new-resolve', { index, nameIndex, name }),
             tone: 'resolve',
             specs: ['5.4.3.1'],
             focusCp: index,
             chain: [
-              { text: `name_index \`#${nameIndex}\` → \`${name}\``, state: 'done' },
-              { text: `Greeter を定義したクラスローダーで \`${name}\` を探す`, state: 'active' },
-              { text: `アクセスできるかを確かめ、結果を \`#${index}\` に記録`, state: 'todo' },
+              { text: copy.title('new-chain-name', { nameIndex, name }), state: 'done' },
+              { text: copy.title('new-chain-find', { name }), state: 'active' },
+              { text: copy.title('new-chain-record', { index }), state: 'todo' },
             ],
             links: [{ from: key, to: `cp:${index}` }],
           });
           this.resolveClass(index);
           this.emit({
             ...base,
-            title: `\`#${index}\` を解決しました`,
-            body: `\`${name}\` はすでにロードされているクラスです。新しくロードはせず、そのクラスへの参照を \`#${index}\` に記録します。`,
+            ...copy.step('new-resolved', { index, name }),
             tone: 'resolve',
             specs: ['5.4.3.1'],
             focusCp: index,
             focusClasses: [name],
             chain: [
-              { text: `name_index \`#${nameIndex}\` → \`${name}\``, state: 'done' },
-              { text: `Greeter を定義したクラスローダーで \`${name}\` を探す`, state: 'done' },
-              { text: `アクセスできるかを確かめ、結果を \`#${index}\` に記録`, state: 'done' },
+              { text: copy.title('new-chain-name', { nameIndex, name }), state: 'done' },
+              { text: copy.title('new-chain-find', { name }), state: 'done' },
+              { text: copy.title('new-chain-record', { index }), state: 'done' },
             ],
             links: [{ from: `cp:${index}`, to: `class:${name}` }],
           });
@@ -521,8 +513,8 @@ class Machine {
         frame.stack.push({ t: 'ref', id });
         this.emit({
           ...base,
-          title: `\`new\` — インスタンスを確保`,
-          body: `${this.cacheNote(insn, cached)}\`${name}\` は初期化済みなので、そのままヒープに領域を確保します。フィールドは既定値 (${fields.map((f) => `${f.name} = null`).join(', ')}) で、参照がスタックに積まれます。コンストラクタはまだ呼ばれていません。`,
+          title: copy.title('new-alloc'),
+          body: this.cacheNote(insn, cached) + copy.body('new-alloc', { name, fields: fields.map((f) => `${f.name} = null`).join(', ') }),
           tone: cached ? 'cache' : 'exec',
           focusCp: index,
           focusHeap: [id],
@@ -547,10 +539,8 @@ class Machine {
           frame.stack.push({ t: 'ref', id: target.id });
           this.emit({
             ...base,
-            title: `\`ldc #${index}\` — 文字列定数を積む`,
-            body: first
-              ? `String エントリは記号参照ではなく**静的定数**で、解決は要りません (§5.1)。同じ内容の String が intern 済みならそれを、なければ新しく作って intern したものを使います (いつ作るかは実装しだいです)。その参照をスタックに積みます。`
-              : `同じ内容の String がすでに intern されているので、その参照を積みます。`,
+            title: copy.title('ldc', { index }),
+            body: copy.body(first ? 'ldc-first' : 'ldc-again'),
             tone: 'static',
             specs: ['5.1', '6.5.ldc'],
             focusCp: index,
@@ -575,8 +565,8 @@ class Machine {
           this.frames.push(this.frame(local, args));
           this.emit({
             ...base,
-            title: `\`invokespecial\` — \`${p.name}\` を呼ぶ`,
-            body: `${this.cacheNote(insn, cached)}\`invokespecial\` は、解決したメソッドをそのまま呼びます。スタックから ${args.map((a) => this.show(a)).join(' と ')} を取り出し、新しいフレームのローカル変数 0 番 (this) と 1 番に入れます。`,
+            title: copy.title('invokespecial-local', { name: p.name }),
+            body: this.cacheNote(insn, cached) + copy.body('invokespecial-local', { args: args.map((a) => this.show(a)).join(' と ') }),
             tone: cached ? 'cache' : 'invoke',
             focusCp: insn.cp,
             links: [{ from: key, to: `frame:${this.frames.length - 1}` }],
@@ -584,8 +574,10 @@ class Machine {
         } else {
           this.emit({
             ...base,
-            title: `\`invokespecial\` — \`${simple(p.className)}.${p.name}\` を呼ぶ`,
-            body: `${this.cacheNote(insn, cached)}スタックから this (${this.show(args[0])}) を取り出し、\`${p.className}.${p.name}${p.descriptor}\` を呼んで戻ってきます (中身は省略)。`,
+            title: copy.title('invokespecial-jdk', { method: `${simple(p.className)}.${p.name}` }),
+            body:
+              this.cacheNote(insn, cached) +
+              copy.body('invokespecial-jdk', { receiver: this.show(args[0]), target: `${p.className}.${p.name}${p.descriptor}` }),
             tone: cached ? 'cache' : 'invoke',
             focusCp: insn.cp,
             links: [{ from: key, to: `class:${p.className}` }],
@@ -603,8 +595,10 @@ class Machine {
         if (field) field.value = value;
         this.emit({
           ...base,
-          title: '`putfield` — フィールドに書き込む',
-          body: `${this.cacheNote(insn, cached)}スタックから値 ${this.show(value)} とオブジェクト参照を取り出し、${target ? `${simple(target.className)}@${target.id}` : ''} の \`${p.name}\` に入れます。`,
+          title: copy.title('putfield'),
+          body:
+            this.cacheNote(insn, cached) +
+            copy.body('putfield', { value: this.show(value), target: target ? `${simple(target.className)}@${target.id}` : '', name: p.name }),
           tone: cached ? 'cache' : 'exec',
           focusCp: insn.cp,
           focusHeap: target ? [target.id] : [],
@@ -621,10 +615,15 @@ class Machine {
         frame.stack.push(value);
         this.emit({
           ...base,
-          title: `\`getfield #${insn.cp}\` — ${cached ? '解決済みの結果を使う' : 'フィールドを読む'}`,
+          title: copy.title(cached ? 'getfield-cached' : 'getfield', { index: insn.cp! }),
           body: cached
-            ? `\`#${insn.cp}\` は、\`<init>\` の \`putfield\` がすでに解決しています。命令が違っても、指す番号が同じなら解決は 1 回で済みます。${target ? `${simple(target.className)}@${target.id}` : ''} の \`${p.name}\` の値 ${this.show(value)} を積みます。`
-            : `\`${p.name}\` の値 ${this.show(value)} を積みます。`,
+            ? copy.body('getfield-cached', {
+                index: insn.cp!,
+                target: target ? `${simple(target.className)}@${target.id}` : '',
+                name: p.name,
+                value: this.show(value),
+              })
+            : copy.body('getfield', { name: p.name, value: this.show(value) }),
           tone: cached ? 'cache' : 'exec',
           focusCp: insn.cp,
           focusHeap: target ? [target.id] : [],
@@ -642,10 +641,10 @@ class Machine {
         frame.stack.push({ t: 'ref', id });
         this.emit({
           ...base,
-          title: `\`getstatic #${insn.cp}\` — ${cached ? '解決済みの結果を使う' : 'static フィールドを読む'}`,
+          title: copy.title(cached ? 'getstatic-cached' : 'getstatic', { index: insn.cp! }),
           body: cached
-            ? `\`#${insn.cp}\` は解決済み。クラスを探す手順も、フィールドを探す手順もなく、記録された参照から \`${simple(p.className)}.${p.name}\` の値を読んで積みます。`
-            : `フィールドを宣言している \`${p.className}\` は、JVM の起動時に初期化済みです (§5.5)。\`${p.name}\` の値 PrintStream@${id} をスタックに積みます。`,
+            ? copy.body('getstatic-cached', { index: insn.cp!, owner: simple(p.className), name: p.name })
+            : copy.body('getstatic', { className: p.className, name: p.name, id }),
           tone: cached ? 'cache' : 'exec',
           specs: cached ? ['5.4.3'] : ['6.5.getstatic', '5.5'],
           focusCp: insn.cp,
@@ -671,10 +670,10 @@ class Machine {
           this.frames.push(this.frame(local, args));
           this.emit({
             ...base,
-            title: `\`invokevirtual #${insn.cp}\` — ${cached ? '解決済みの結果で呼ぶ' : `\`${p.name}\` を呼ぶ`}`,
+            title: copy.title(cached ? 'invokevirtual-cached' : 'invokevirtual', { index: insn.cp!, name: p.name }),
             body: cached
-              ? `\`#${insn.cp}\` は解決済み。レシーバ ${this.show(args[0])} のクラスから \`${p.name}\` を選び、新しいフレームで実行を始めます。`
-              : `\`invokevirtual\` は、レシーバの実際のクラスから呼ぶメソッドを選びます (§5.4.6)。${this.show(args[0])} のクラスは ${simple(receiver!.className)} なので、\`${simple(receiver!.className)}.${p.name}\` が選ばれます。新しいフレームのローカル変数 0 番に this を入れて、実行を始めます。`,
+              ? copy.body('invokevirtual-local-cached', { index: insn.cp!, receiver: this.show(args[0]), name: p.name })
+              : copy.body('invokevirtual-local', { receiver: this.show(args[0]), className: simple(receiver!.className), name: p.name }),
             tone: cached ? 'cache' : 'invoke',
             specs: cached ? ['5.4.3'] : ['5.4.6', '6.5.invokevirtual'],
             focusCp: insn.cp,
@@ -688,8 +687,14 @@ class Machine {
         this.console.push(printed);
         this.emit({
           ...base,
-          title: `\`invokevirtual #${insn.cp}\` — ${cached ? '解決済みの結果で呼ぶ' : `\`${p.name}\` を呼ぶ`}`,
-          body: `${this.cacheNote(insn, cached)}レシーバ ${this.show(args[0])} のクラスから \`${p.name}${prettyDescriptor(p.descriptor).split(' → ')[0]}\` を選んで呼びます (中身は省略)。コンソールに ${printed} が出力されます。`,
+          title: copy.title(cached ? 'invokevirtual-cached' : 'invokevirtual', { index: insn.cp!, name: p.name }),
+          body:
+            this.cacheNote(insn, cached) +
+            copy.body('invokevirtual-jdk', {
+              receiver: this.show(args[0]),
+              method: `${p.name}${prettyDescriptor(p.descriptor).split(' → ')[0]}`,
+              printed,
+            }),
           tone: cached ? 'cache' : 'invoke',
           specs: cached ? ['5.4.3'] : ['5.4.6', '6.5.invokevirtual'],
           focusCp: insn.cp,
@@ -710,11 +715,11 @@ class Machine {
         if (caller && value) caller.stack.push(value);
         this.emit({
           ...base,
-          title: `\`${insn.mnemonic}\` — ${frame.method} から戻る`,
+          title: copy.title('return', { mnemonic: insn.mnemonic, method: frame.method }),
           body: caller
-            ? `\`${frame.method}\` が終わりました。フレームを捨てて、\`${caller.method}\` の続き (pc ${caller.pc}) に戻ります。` +
-              (value ? `戻り値 ${this.show(value)} は呼び出し元のスタックに積まれます。` : '')
-            : '`main` が終わり、フレームがなくなりました。',
+            ? copy.body('return-caller', { method: frame.method, caller: caller.method, pc: caller.pc }) +
+              (value ? copy.body('return-value', { value: this.show(value) }) : '')
+            : copy.body('return-main'),
           tone: 'exec',
           specs: [`6.5.${insn.mnemonic}`],
           focusHeap: value?.t === 'ref' ? [value.id] : [],
@@ -723,7 +728,7 @@ class Machine {
         return;
       }
       default:
-        this.emit({ ...base, title: `\`${insn.mnemonic}\``, body: 'この命令の動きは省略します。', tone: 'exec' });
+        this.emit({ ...base, ...copy.step('skip', { mnemonic: insn.mnemonic }), tone: 'exec' });
         frame.pc = next;
     }
   }
@@ -754,8 +759,7 @@ class Machine {
       frame.stack.push({ t: 'ref', id });
       this.emit({
         ...base,
-        title: `\`invokedynamic #${index}\` — 結びついた CallSite を使う`,
-        body: `この命令はすでに CallSite@${existing.id} に結びついています。ブートストラップメソッドは**呼ばれません**。同じ CallSite のメソッドハンドルを ${this.show(arg)} で呼び、新しい String "${concat()}" を積みます。`,
+        ...copy.step('indy-cached', { index, site: existing.id, arg: this.show(arg), result: concat() }),
         tone: 'cache',
         specs: ['5.4.3', '6.5.invokedynamic'],
         focusCp: index,
@@ -771,20 +775,20 @@ class Machine {
 
     const mh = this.cf.pool[bm.ref]!;
     const target = this.refParts(mh.refs[0].index);
+    const bootstrapIndex = entry.bootstrapIndex ?? 0;
     const steps = [
-      `bootstrap_method_attr_index → BootstrapMethods[${entry.bootstrapIndex}]`,
-      `メソッドハンドル \`#${bm.ref}\` を解決`,
-      `記述子から MethodType を作り、静的引数を用意`,
-      `ブートストラップメソッドを呼ぶ`,
-      `返ってきた CallSite をこの命令に結びつける`,
+      copy.title('indy-step-attr', { bootstrapIndex }),
+      copy.title('indy-step-handle', { ref: bm.ref }),
+      copy.title('indy-step-type'),
+      copy.title('indy-step-call'),
+      copy.title('indy-step-bind'),
     ];
     const chain = (done: number): ChainItem[] =>
       steps.map((text, i) => ({ text, state: i < done ? 'done' : i === done ? 'active' : 'todo' }));
 
     this.emit({
       ...base,
-      title: `\`invokedynamic #${index}\` — 呼び出し地点を解決する`,
-      body: `\`#${index}\` は InvokeDynamic。bootstrap_method_attr_index が BootstrapMethods 属性の ${entry.bootstrapIndex} 番を指し、名前と型は \`${name}\` \`${descriptor}\` です。これから、**この命令のための**呼び出し先を作ります。`,
+      ...copy.step('indy', { index, bootstrapIndex, name, descriptor }),
       tone: 'resolve',
       specs: ['5.4.3.6', '4.7.23'],
       focusCp: index,
@@ -808,8 +812,14 @@ class Machine {
     this.resolutions++;
     this.emit({
       ...base,
-      title: `\`#${bm.ref}\` MethodHandle を解決する`,
-      body: `\`#${bm.ref}\` は ${mh.parts.find((x) => x.name === 'reference_kind')?.value.split(' ')[1].slice(1, -1)} のメソッドハンドルで、\`#${mh.refs[0].index}\` の Methodref を指します。その class_index \`#${target.classIndex}\` から \`${target.className}\` を解決し (ロードされていなければ、ここでロードします)、\`${target.name}\` を探します。`,
+      ...copy.step('indy-handle', {
+        ref: bm.ref,
+        kind: mh.parts.find((x) => x.name === 'reference_kind')?.value.split(' ')[1].slice(1, -1) ?? '',
+        methodref: mh.refs[0].index,
+        classIndex: target.classIndex,
+        className: target.className,
+        name: target.name,
+      }),
       tone: 'resolve',
       specs: ['5.4.3.5'],
       focusCp: bm.ref,
@@ -831,8 +841,7 @@ class Machine {
     const [params, ret] = prettyDescriptor(descriptor).split(' → ');
     this.emit({
       ...base,
-      title: 'MethodType と静的引数を用意する',
-      body: `\`#${index}\` の記述子から MethodType \`${params}${ret}\` を作ります。静的引数 \`#${recipeIndex}\` は文字列定数なので、レシピ \`"${shownRecipe}"\` の String を用意します。\`\\u0001\` の位置に、実行時の引数が入ります。`,
+      ...copy.step('indy-type', { index, type: `${params}${ret}`, recipeIndex: recipeIndex ?? 0, recipe: shownRecipe }),
       tone: 'static',
       specs: ['5.4.3.6'],
       focusCp: recipeIndex,
@@ -847,8 +856,7 @@ class Machine {
     const siteId = this.alloc({ type: 'CallSite', className: 'java/lang/invoke/CallSite', tag: site });
     this.emit({
       ...base,
-      title: 'ブートストラップメソッドを呼ぶ',
-      body: `\`${simple(target.className)}.${target.name}\` に、Lookup、名前 \`"${name}"\`、MethodType、レシピを渡して呼びます。REF_invokeStatic のハンドルを初めて呼ぶので、\`${simple(target.className)}\` がまだ初期化されていなければ、ここで初期化されます (§5.5)。戻り値は **CallSite** です。`,
+      ...copy.step('indy-call', { factory: simple(target.className), method: target.name, name }),
       tone: 'invoke',
       specs: ['5.4.3.6', '5.5'],
       focusCp: index,
@@ -867,8 +875,7 @@ class Machine {
     frame.stack.push({ t: 'ref', id });
     this.emit({
       ...base,
-      title: 'CallSite を結びつけて呼ぶ',
-      body: `CallSite@${siteId} は **この invokedynamic 命令 (${site}) だけ**に結びつきます。同じ \`#${index}\` を指す別の命令があっても、そちらは未解決のままです (§5.4.3)。CallSite のメソッドハンドルを ${this.show(arg)} で呼び、"${concat()}" をスタックに積みます。`,
+      ...copy.step('indy-bind', { site: siteId, at: site, index, arg: this.show(arg), result: concat() }),
       tone: 'resolve',
       specs: ['5.4.3', '6.5.invokedynamic'],
       focusCp: index,
@@ -885,8 +892,7 @@ class Machine {
 
   private finish(): void {
     this.emit({
-      title: '実行が終わりました',
-      body: `記号参照の解決は **${this.resolutions} 回**、解決済みの結果の再利用は **${this.hits} 回**でした。2 回目の \`System.out.println(g.greet())\` では、どの命令も解決の手順を踏まず、記録された結果をそのまま使っています。`,
+      ...copy.step('done', { resolutions: this.resolutions, hits: this.hits }),
       tone: 'done',
       specs: ['5.4.3', '5.7'],
     });
