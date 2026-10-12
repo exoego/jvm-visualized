@@ -5,27 +5,28 @@
 <!-- versions -->
 ## コンパイル時と実行時で Bar のバージョンが違う
 
-`foo/Foo` は `{owner}` の **1.0** に対してコンパイルされました。実行時のクラスパスに入っているのは **2.0** です。1.0 にあった `{method}()` は、2.0 では名前が変わっています。実行時に javac は関与しません。JVM が読むのは、この 2 つの class ファイルです。
+`foo/Foo.class` は `{owner}` の **v1.0** に対してコンパイルされました。しかし実行時のクラスパスに **v2.0** が入りました。
+v1.0 にあった `{method}()` は、v2.0 では名前が変わっています。
 
 <!-- run-old -->
-## 1.0 で実行すると正常に終わる
+## v1.0 で実行すると正常に終わる
 
-クラスパスに 1.0 を置いて実行すると、`Foo.foo()` は `bar.Bar#buz` と出力して正常に終わります。
+クラスパスに v1.0 を置いて実行すると、`Foo.foo()` は `bar.Bar#buz` と出力して正常に終わります。
 
 <!-- run-new -->
-## 2.0 に差し替えて実行する
+## v2.0 に差し替えて実行する
 
-依存の解決でバージョンが入れ替わり、クラスパスの `bar/Bar` が 2.0 になりました。`Foo.class` は再コンパイルしていません。`Main.main` から `Foo.foo()` が呼ばれます。
+依存の解決でバージョンが入れ替わり、クラスパスの `bar/Bar` が v2.0 になりました。`Foo.class` は再コンパイルしていません。`Main.main` から `Foo.foo()` が呼ばれます。
 
 <!-- new -->
 ## `new #{classRef}` — Class エントリは解決できる
 
-`#{classRef}` は Class エントリで、名前は `{owner}` です。クラスパスから 2.0 の `{owner}` が見つかるので、解決は成功します。ここで確認されるのは**クラスの存在だけ**で、メソッドの有無はまだ確認されません。
+`#{classRef}` は Class エントリで、名前は `{owner}` です。クラスパスから v2.0 の `{owner}` が見つかるので、解決は成功します。ここで確認されるのは**クラスの存在だけ**で、メソッドの有無はまだ確認されません。
 
 <!-- ctor -->
 ## `invokespecial #{ctorRef}` — コンストラクタの Methodref も解決できる
 
-`{owner}.<init>:()V` は 2.0 にもあります。解決できるので、インスタンスが作られます。
+`{owner}.<init>:()V` は v2.0 にもあります。解決できるので、インスタンスが作られます。
 
 <!-- call -->
 ## `invokevirtual #{callRef}` — {method}() の Methodref を解決する
@@ -50,7 +51,7 @@
 <!-- error -->
 ## {method}() が見つからず NoSuchMethodError
 
-2.0 の `{owner}` には `{method}()` がありません。親クラス `java/lang/Object` にもないので、メソッドの探索は失敗します。JVM は `NoSuchMethodError` を投げます。これは `IncompatibleClassChangeError` のサブクラスで、さらにその親が **LinkageError** です。
+v2.0 の `{owner}` には `{method}()` がありません。親クラス `java/lang/Object` にもないので、メソッドの探索は失敗します。JVM は `NoSuchMethodError` を投げます。これは `IncompatibleClassChangeError` のサブクラスで、さらにその親が **LinkageError** です。
 
 <!-- again -->
 ## 同じ命令を再実行しても同じエラーになる
@@ -65,4 +66,4 @@
 <!-- note -->
 ## 実行前に検出する
 
-定数プールにあるのは名前と記述子だけなので、実行しなくても、クラスパス上の class ファイルと突き合わせれば同じ検査ができます。ライブラリの新旧を比べて、壊れる参照だけを報告するツールもあります。[Uika](https://github.com/exoego/uika) は、PR の時点で `NoSuchMethodError` などを検出します。
+定数プールにあるのは名前と記述子だけなので、実行しなくてもクラスパス上の class ファイルと突き合わせれば同じ検査ができます。コードが使っている[ライブラリの新旧を比べ、壊れる参照だけを報告するツール Uika]((https://github.com/exoego/uika) もあります。

@@ -440,7 +440,7 @@ export function mountStructure(root: HTMLElement, cf: ClassFile): void {
         h(
           'div',
           { class: 'struct-right' },
-          h('div', { class: 'panel map-panel' }, h('h3', { class: 'panel-title' }, '1 マス = 1 バイト', h('span', { class: 'aside' }, 'マスを選ぶと、そこへ移動します')), mapBox, legend),
+          h('div', { class: 'panel map-panel' }, h('h3', { class: 'panel-title' }, '1 マス = 1 バイト', h('span', { class: 'aside' }, 'マスをクリックしてジャンプ')), mapBox, legend),
           reading,
         ),
       ),

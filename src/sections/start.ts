@@ -62,11 +62,6 @@ export function mountStart(root: HTMLElement, cf: ClassFile, source: string): vo
     { class: 'start-dump' },
     h('p', { class: 'panel-title' }, `Greeter.class の先頭 ${PREVIEW_ROWS * 16} バイト`, h('span', { class: 'aside mono' }, `全 ${size.toLocaleString('en-US')} バイト`)),
     h('div', { class: 'hexdump' }, rows),
-    h(
-      'p',
-      { class: 'start-note' },
-      copy.body('dump-note'),
-    ),
   );
 
   const card = h(

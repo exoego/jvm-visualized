@@ -26,7 +26,7 @@
           <li><a href="#pool"><span class="num">02</span><span class="txt">定数プール</span></a></li>
           <li><a href="#source"><span class="num">03</span><span class="txt">ソース</span></a></li>
           <li><a href="#runtime"><span class="num">04</span><span class="txt">実行時</span></a></li>
-          <li><a href="#linkage"><span class="num">05</span><span class="txt">LinkageError</span></a></li>
+          <li><a href="#linkage"><span class="num">05</span><span class="txt">リンクエラー</span></a></li>
         </ul>
       </div>
     </nav>
@@ -48,10 +48,9 @@
       <section id="start" class="chapter" style="--accent: var(--text-2)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">00</span>題材<span class="spec">Greeter.java</span></p>
-          <h2>題材は <span data-bind="lines"></span> 行の Greeter.java</h2>
+          <h2><span data-bind="lines"></span> 行から生まれた <span data-bind="size"></span> バイト</h2>
           <p class="lede">
-            題材は、名前を受け取ってあいさつを返すだけの小さなクラス Greeter です。javac でコンパイルすると、<span data-bind="size"></span>
-            バイトの Greeter.class ができます。このページでは、その Greeter.class を JVM 仕様のとおりに読み、JVM がそれをどう実行するかを追います。
+            この小さなクラスをコンパイルすると、class ファイル Greeter.class ができます。
           </p>
         </header>
         <div class="stage reveal" data-mount="start"></div>
@@ -59,11 +58,11 @@
 
       <section id="structure" class="chapter" style="--accent: var(--cyan)">
         <header class="chapter-head reveal">
-          <p class="eyebrow"><span class="num">01</span>ClassFile 構造<span class="spec">§4.1</span></p>
-          <h2>ClassFile 構造体を先頭から読む</h2>
+          <p class="eyebrow"><span class="num">01</span>class ファイルの構造<span class="spec">§4.1</span></p>
+          <h2>バイト列のどこに何があるか</h2>
           <p class="lede">
-            Greeter.class の <span data-bind="size"></span> バイトには、区切り文字も目次もありません。JVMS §4.1 の ClassFile
-            構造体の定義どおりに先頭から順に読み、読み取った count や length の値から次の項目の長さを決めます。JVM と同じこの手順で、末尾まで読みます。
+            Greeter.class の <span data-bind="size"></span> バイトには区切り文字も目次もありません。JVMS §4.1 の構造体定義
+            により、どこにどんな項目がどんな長さであるかが決まっています。
           </p>
         </header>
         <div class="stage reveal" data-mount="structure"></div>
@@ -74,8 +73,8 @@
           <p class="eyebrow"><span class="num">02</span>定数プール<span class="spec">§4.4 · §4.7.23</span></p>
           <h2>定数プールの中身と参照の関係</h2>
           <p class="lede">
-            バイトコードもフィールドも、クラス名やメソッド名の文字列を直接は持ちません。持っているのは定数プールの<strong>エントリ番号</strong>です。エントリどうしも番号で参照し合い、たどっていくと最後は
-            Utf8 エントリの文字列に行き着きます。
+            バイトコードもフィールドも、クラス名やメソッド名の文字列は持ちません。代わりに定数プールの<strong>エントリ番号</strong>を持ちます。
+            エントリ同士も番号で参照し合い、たどっていくと最後は Utf8 エントリの文字列に行き着きます。
           </p>
         </header>
         <div class="stage reveal" data-mount="pool"></div>
@@ -84,10 +83,11 @@
       <section id="source" class="chapter" style="--accent: var(--orange)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">03</span>ソースと定数プール<span class="spec">§3 · §4</span></p>
-          <h2>ソースの各行と定数プールの対応</h2>
+          <h2>ソースコードの各行と定数プールの対応</h2>
           <p class="lede">
-            <code>g.greet()</code> という 1 つの呼び出しだけで、Methodref、Class、NameAndType と 3 つの Utf8
-            のエントリが要ります。javac は同じ内容のエントリを 1 つにまとめるので、2 回目の呼び出しではエントリは増えません。下線の部分を選ぶと、その行が使うエントリと、そのうち新しく作られたものを表示します。
+            <code>g.greet()</code> という 1 つの呼び出しは、Methodref、Class、NameAndType という 3 つの Utf8
+            エントリから構成されます。javac は同じ内容のエントリを 1 つにまとめるので、ソース上で 2 回以上読んでも 1 つのエントリが再利用されます。
+
           </p>
         </header>
         <div class="stage reveal" data-mount="source"></div>
@@ -99,7 +99,7 @@
           <h2>実行時定数プールと記号参照の解決</h2>
           <p class="lede">
             JVM は、定数プールにある記号参照を実際のクラスやフィールド、メソッドに結びつけます。これを<strong>解決</strong> (resolution)
-            と呼びます。解決した結果は実行時定数プールに記録され、同じエントリを使う命令は次からその結果を使います。main を 1 命令ずつ実行して、この様子を追います。
+            と呼びます。解決した結果は実行時定数プールに記録され、同じエントリを使う命令は次からその結果を使います。
           </p>
           <p class="note">
             フレームはスレッドごと、ヒープとメソッド領域はすべてのスレッドで共有します。実行時定数プールはメソッド領域の中にあります
@@ -111,15 +111,11 @@
 
       <section id="linkage" class="chapter" style="--accent: var(--red)">
         <header class="chapter-head reveal">
-          <p class="eyebrow"><span class="num">05</span>LinkageError<span class="spec">§5.4.3</span></p>
-          <h2>実行時に参照先のメソッドがない場合</h2>
+          <p class="eyebrow"><span class="num">05</span>リンクエラー（LinkageError）<span class="spec">§5.4.3</span></p>
+          <h2>参照先のメソッドが実行時に見つからない</h2>
           <p class="lede">
-            class ファイルが持っているのは、呼び出し先のクラス名とメソッド名と記述子だけです。コンパイル時にあったメソッドが実行時のクラスパスにない場合でも、JVM
-            はその命令を実行して解決するまで気づきません。ライブラリのバージョンが入れ替わったときに起きる LinkageError を、実際に起こして追います。
-          </p>
-          <p class="note">
-            題材は別の 3 つの class ファイルです。<code>foo/Foo</code> は <code>bar/Bar</code> の 1.0
-            に対してコンパイルし、実行時には 2.0 を置いています。1.0 の <code>buz()</code> は、2.0 では <code>buzz()</code> に変わっています。
+            JVM はクラスパスで動的にリンクするので、渡ってくる class ファイルに非互換が紛れ込んでいても、起動はできてしまいます。
+            非互換のバイトコードが解決されるときに LinkageError がどう起きるのか見ていきましょう。
           </p>
         </header>
         <div class="stage reveal" data-mount="linkage"></div>
