@@ -969,7 +969,7 @@ code,
   text-align: right;
 }
 
-/* ---------- 02 Pool ---------- */
+/* ---------- 03 Pool ---------- */
 
 .pool-top {
   display: flex;
@@ -1378,7 +1378,7 @@ code,
   color: var(--text);
 }
 
-/* ---------- 03 Source ---------- */
+/* ---------- 02 Source ---------- */
 
 .source {
   display: grid;

@@ -23,8 +23,8 @@
         <ul class="nav-links">
           <li><a href="#start"><span class="num">00</span><span class="txt">題材</span></a></li>
           <li><a href="#structure"><span class="num">01</span><span class="txt">構造</span></a></li>
-          <li><a href="#pool"><span class="num">02</span><span class="txt">定数プール</span></a></li>
-          <li><a href="#source"><span class="num">03</span><span class="txt">ソース</span></a></li>
+          <li><a href="#source"><span class="num">02</span><span class="txt">ソース</span></a></li>
+          <li><a href="#pool"><span class="num">03</span><span class="txt">定数プール</span></a></li>
           <li><a href="#runtime"><span class="num">04</span><span class="txt">実行時</span></a></li>
           <li><a href="#linkage"><span class="num">05</span><span class="txt">リンクエラー</span></a></li>
         </ul>
@@ -68,9 +68,21 @@
         <div class="stage reveal" data-mount="structure"></div>
       </section>
 
+      <section id="source" class="chapter" style="--accent: var(--orange)">
+        <header class="chapter-head reveal">
+          <p class="eyebrow"><span class="num">02</span>ソースと定数プール<span class="spec">§3 · §4</span></p>
+          <h2>ソースコードの各行と定数プールの対応</h2>
+          <p class="lede">
+            <code>g.greet()</code> という 1 つの呼び出しは、Methodref、Class、NameAndType という 3 つの Utf8
+            エントリから構成されます。javac は同じ内容のエントリを 1 つにまとめるので、ソース上で 2 回以上読んでも 1 つのエントリが再利用されます。
+          </p>
+        </header>
+        <div class="stage reveal" data-mount="source"></div>
+      </section>
+
       <section id="pool" class="chapter" style="--accent: var(--blue)">
         <header class="chapter-head reveal">
-          <p class="eyebrow"><span class="num">02</span>定数プール<span class="spec">§4.4 · §4.7.23</span></p>
+          <p class="eyebrow"><span class="num">03</span>定数プール<span class="spec">§4.4 · §4.7.23</span></p>
           <h2>定数プールの中身と参照の関係</h2>
           <p class="lede">
             バイトコードもフィールドも、クラス名やメソッド名の文字列は持ちません。代わりに定数プールの<strong>エントリ番号</strong>を持ちます。
@@ -78,19 +90,6 @@
           </p>
         </header>
         <div class="stage reveal" data-mount="pool"></div>
-      </section>
-
-      <section id="source" class="chapter" style="--accent: var(--orange)">
-        <header class="chapter-head reveal">
-          <p class="eyebrow"><span class="num">03</span>ソースと定数プール<span class="spec">§3 · §4</span></p>
-          <h2>ソースコードの各行と定数プールの対応</h2>
-          <p class="lede">
-            <code>g.greet()</code> という 1 つの呼び出しは、Methodref、Class、NameAndType という 3 つの Utf8
-            エントリから構成されます。javac は同じ内容のエントリを 1 つにまとめるので、ソース上で 2 回以上読んでも 1 つのエントリが再利用されます。
-
-          </p>
-        </header>
-        <div class="stage reveal" data-mount="source"></div>
       </section>
 
       <section id="runtime" class="chapter" style="--accent: var(--green)">
@@ -128,8 +127,8 @@
           <h3>参照した仕様 · The Java Virtual Machine Specification, Java SE 21 Edition</h3>
           <ul class="spec-list">
             <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-2.html" target="_blank" rel="noopener">第 2 章 JVM の構造</a><span>04 のフレーム、ヒープ、メソッド領域、実行時定数プール</span></li>
-            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-3.html" target="_blank" rel="noopener">第 3 章 JVM 向けのコンパイル</a><span>03 のソースと命令の対応</span></li>
-            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html" target="_blank" rel="noopener">第 4 章 class ファイル形式</a><span>01 の構造、02 の定数プール</span></li>
+            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-3.html" target="_blank" rel="noopener">第 3 章 JVM 向けのコンパイル</a><span>02 のソースと命令の対応</span></li>
+            <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-4.html" target="_blank" rel="noopener">第 4 章 class ファイル形式</a><span>01 の構造、03 の定数プール</span></li>
             <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-5.html" target="_blank" rel="noopener">第 5 章 ロード、リンク、初期化</a><span>04 の解決と初期化</span></li>
             <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-6.html" target="_blank" rel="noopener">第 6 章 命令セット</a><span>04 で実行する命令</span></li>
             <li><a href="https://docs.oracle.com/javase/specs/jvms/se21/html/jvms-7.html" target="_blank" rel="noopener">第 7 章 オペコード表</a><span>バイトコードの読み取り</span></li>
