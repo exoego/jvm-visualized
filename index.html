@@ -73,7 +73,8 @@
           <p class="eyebrow"><span class="num">02</span>ソースと定数プール<span class="spec">§3 · §4</span></p>
           <h2>ソースコードの各行と定数プールの対応</h2>
           <p class="lede">
-            <code>g.greet()</code> という 1 つの呼び出しは、Methodref、Class、NameAndType という 3 つの Utf8 エントリから構成されます。
+            ソースの各行は、バイトコードの命令と定数プールのエントリになります。
+            例えば <code>g.greet()</code> という 1 つの呼び出しだけで、エントリを 6 つ使います。
           </p>
         </header>
         <div class="stage reveal" data-mount="source"></div>
