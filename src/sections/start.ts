@@ -61,7 +61,7 @@ export function mountStart(root: HTMLElement, cf: ClassFile, source: string): vo
     h(
       'p',
       { class: 'start-note' },
-      '人が読むための区切りや名前はなく、数字が並んでいるだけです。これを JVM と同じ順番で、先頭から読んでいきます。',
+      'テキストではなくバイナリなので、人が読むための区切りや見出しはありません。01 では、これを JVM と同じ順番で先頭から読みます。',
     ),
   );
 
@@ -77,7 +77,7 @@ export function mountStart(root: HTMLElement, cf: ClassFile, source: string): vo
         ? h(
             'p',
             { class: 'start-code-note' },
-            `${repeated[0]} 行目と ${repeated[1]} 行目で同じ呼び出しを 2 回しているのは、わざとです。2 回目では定数プールのエントリが増えないこと (03) と、JVM が解決をやり直さないこと (04) を見比べます。`,
+            `${repeated[0]} 行目と ${repeated[1]} 行目は同じ呼び出しを 2 回しています。これは意図的で、2 回目では定数プールのエントリが増えないこと (03) と、JVM が解決をやり直さないこと (04) を確かめるためです。`,
           )
         : null,
     ),

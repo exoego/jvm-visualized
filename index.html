@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#000000" />
     <meta
       name="description"
-      content="javac が書き出した class ファイルを、JVM 仕様のとおりに1バイトずつ読み解くビジュアルガイド。定数プールの中身と、実行時の解決までをアニメーションで。"
+      content="javac が出力した class ファイルを JVM 仕様に沿って 1 バイトずつ読み、定数プールの中身と実行時の解決をアニメーションで解説します。"
     />
     <title>JVM Visualized</title>
     <link
@@ -36,13 +36,13 @@
         <div class="hero-glow" aria-hidden="true"></div>
         <div class="hero-content">
           <p class="eyebrow">JVM 仕様 Java SE 21 版</p>
-          <h1><span class="hero-code">class</span> ファイルをひらく</h1>
+          <h1><span class="hero-code">class</span> ファイルの読み方</h1>
           <p class="lede">
-            javac が書き出したバイト列を、JVM 仕様のとおりに1バイトずつ読み解きます。<br />
-            定数プールに何が入り、実行時にどう使われるのかを、アニメーションで追います。
+            javac が出力した Greeter.class のバイト列を、JVM 仕様の定義に沿って先頭から読みます。<br />
+            定数プールに何が入り、JVM が実行時にそれをどう解決するかを、アニメーションで示します。
           </p>
           <div class="hero-actions">
-            <a class="btn btn-primary" href="#start">読みはじめる</a>
+            <a class="btn btn-primary" href="#start">最初から読む</a>
             <a
               class="btn-link"
               href="https://docs.oracle.com/javase/specs/jvms/se21/html/index.html"
@@ -59,10 +59,10 @@
       <section id="start" class="chapter" style="--accent: var(--text-2)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">00</span>題材<span class="spec">Greeter.java</span></p>
-          <h2>すべてはこの <span data-bind="lines"></span> 行から</h2>
+          <h2>題材は <span data-bind="lines"></span> 行の Greeter.java</h2>
           <p class="lede">
             題材は、名前を受け取ってあいさつを返すだけの小さなクラス Greeter です。javac でコンパイルすると、<span data-bind="size"></span>
-            バイトの Greeter.class ができます。このページでは、そのバイト列を JVM 仕様のとおりに読んでいきます。
+            バイトの Greeter.class ができます。このページでは、その Greeter.class を JVM 仕様のとおりに読み、JVM がそれをどう実行するかを追います。
           </p>
         </header>
         <div class="stage reveal" data-mount="start"></div>
@@ -71,10 +71,10 @@
       <section id="structure" class="chapter" style="--accent: var(--cyan)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">01</span>ClassFile 構造<span class="spec">§4.1</span></p>
-          <h2>区切りのない <span data-bind="size"></span> バイト</h2>
+          <h2>ClassFile 構造体を先頭から読む</h2>
           <p class="lede">
-            Greeter.class には区切り文字も目次もありません。先頭から順に読み、読んだ値から次の長さを知る。JVM
-            と同じやり方で、端から端まで読んでみます。
+            Greeter.class の <span data-bind="size"></span> バイトには、区切り文字も目次もありません。JVMS §4.1 の ClassFile
+            構造体の定義どおりに先頭から順に読み、読み取った count や length の値から次の項目の長さを決めます。JVM と同じこの手順で、末尾まで読みます。
           </p>
         </header>
         <div class="stage reveal" data-mount="structure"></div>
@@ -83,10 +83,10 @@
       <section id="pool" class="chapter" style="--accent: var(--blue)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">02</span>定数プール<span class="spec">§4.4 · §4.7.23</span></p>
-          <h2>名前はすべてここにある</h2>
+          <h2>定数プールの中身と参照の関係</h2>
           <p class="lede">
-            バイトコードもフィールドも、クラス名やメソッド名を直接は持っていません。持っているのは定数プールの<strong>番号</strong>だけ。エントリどうしも番号で指し合い、最後は
-            Utf8 の文字列にたどり着きます。
+            バイトコードもフィールドも、クラス名やメソッド名の文字列を直接は持ちません。持っているのは定数プールの<strong>エントリ番号</strong>です。エントリどうしも番号で参照し合い、たどっていくと最後は
+            Utf8 エントリの文字列に行き着きます。
           </p>
         </header>
         <div class="stage reveal" data-mount="pool"></div>
@@ -95,10 +95,10 @@
       <section id="source" class="chapter" style="--accent: var(--orange)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">03</span>ソースと定数プール<span class="spec">§3 · §4</span></p>
-          <h2>1 行のコードがいくつものエントリに</h2>
+          <h2>ソースの各行と定数プールの対応</h2>
           <p class="lede">
-            <code>g.greet()</code> という短い呼び出しにも、Methodref、Class、NameAndType と 3 つの Utf8
-            が要ります。そして javac は、同じ内容のエントリを 1 つにまとめます。コードを選んで、何が生まれたかを見てください。
+            <code>g.greet()</code> という 1 つの呼び出しだけで、Methodref、Class、NameAndType と 3 つの Utf8
+            のエントリが要ります。javac は同じ内容のエントリを 1 つにまとめるので、2 回目の呼び出しではエントリは増えません。下線の部分を選ぶと、その行が使うエントリと、そのうち新しく作られたものを表示します。
           </p>
         </header>
         <div class="stage reveal" data-mount="source"></div>
@@ -107,10 +107,10 @@
       <section id="runtime" class="chapter" style="--accent: var(--green)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">04</span>実行時の解決<span class="spec">§2 · §5 · §6</span></p>
-          <h2>番号が実体に変わる瞬間</h2>
+          <h2>実行時定数プールと記号参照の解決</h2>
           <p class="lede">
-            JVM は定数プールの記号参照を、実際のクラスやメソッドに結びつけます。これが<strong>解決</strong>です。一度解決した結果は記録され、次からはそのまま使われます。main
-            を 1 命令ずつ実行して、その様子を追います。
+            JVM は、定数プールにある記号参照を実際のクラスやフィールド、メソッドに結びつけます。これを<strong>解決</strong> (resolution)
+            と呼びます。解決した結果は実行時定数プールに記録され、同じエントリを使う命令は次からその結果を使います。main を 1 命令ずつ実行して、この様子を追います。
           </p>
           <p class="note">
             フレームはスレッドごと、ヒープとメソッド領域はすべてのスレッドで共有します。実行時定数プールはメソッド領域の中にあります
@@ -123,10 +123,10 @@
       <section id="linkage" class="chapter" style="--accent: var(--red)">
         <header class="chapter-head reveal">
           <p class="eyebrow"><span class="num">05</span>LinkageError<span class="spec">§5.4.3</span></p>
-          <h2>名前で指すからあとで壊れる</h2>
+          <h2>実行時に参照先のメソッドがない場合</h2>
           <p class="lede">
-            class ファイルに残るのは名前だけです。コンパイル時にあったメソッドが実行時のクラスパスから消えていても、JVM
-            はその命令を実行するまで気づきません。ライブラリのバージョンが入れ替わったときに起きる LinkageError を、実際に起こして追います。
+            class ファイルが持っているのは、呼び出し先のクラス名とメソッド名と記述子だけです。コンパイル時にあったメソッドが実行時のクラスパスにない場合でも、JVM
+            はその命令を実行して解決するまで気づきません。ライブラリのバージョンが入れ替わったときに起きる LinkageError を、実際に起こして追います。
           </p>
           <p class="note">
             題材は別の 3 つの class ファイルです。<code>foo/Foo</code> は <code>bar/Bar</code> の 1.0

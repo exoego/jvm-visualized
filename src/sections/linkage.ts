@@ -6,11 +6,11 @@ import { Player } from '../ui/player';
 type Tone = 'load' | 'resolve' | 'exec' | 'error' | 'done';
 
 const TONE_LABEL: Record<Tone, string> = {
-  load: '組み合わせ',
+  load: '構成',
   resolve: '解決',
   exec: '実行',
   error: 'エラー',
-  done: '気づく',
+  done: '検出',
 };
 
 interface Step {
@@ -71,14 +71,14 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
 
   const STEPS: Step[] = [
     {
-      title: 'ライブラリを組み合わせる',
-      body: `\`foo/Foo\` は \`${owner}\` の **1.0** に対してコンパイルされました。ところが実行時のクラスパスに入っているのは **2.0** です。1.0 にあった \`${callName}()\` は、2.0 では名前が変わっています。javac はもう関係ありません。実行するのは、この 2 つの class ファイルです。`,
+      title: 'コンパイル時と実行時で Bar のバージョンが違う',
+      body: `\`foo/Foo\` は \`${owner}\` の **1.0** に対してコンパイルされました。実行時のクラスパスに入っているのは **2.0** です。1.0 にあった \`${callName}()\` は、2.0 では名前が変わっています。実行時に javac は関与しません。JVM が読むのは、この 2 つの class ファイルです。`,
       tone: 'load',
       bar: 'old',
     },
     {
-      title: '1.0 と動かすと、ふつうに動く',
-      body: 'クラスパスに 1.0 を置くと、`Foo.foo()` は `bar.Bar#buz` と出力して終わります。ここまでは何も問題がありません。',
+      title: '1.0 で実行すると正常に終わる',
+      body: 'クラスパスに 1.0 を置いて実行すると、`Foo.foo()` は `bar.Bar#buz` と出力して正常に終わります。',
       tone: 'exec',
       run: 'old',
       bar: 'old',
@@ -92,8 +92,8 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       pc: insns[0].pc,
     },
     {
-      title: `\`new #${classRef}\` — クラスは見つかる`,
-      body: `\`#${classRef}\` は Class エントリで、名前は \`${owner}\` です。クラスパスから 2.0 の \`${owner}\` が見つかり、解決できます。**クラスがあるかどうかの確認は、ここで済んでしまいます**。`,
+      title: `\`new #${classRef}\` — Class エントリは解決できる`,
+      body: `\`#${classRef}\` は Class エントリで、名前は \`${owner}\` です。クラスパスから 2.0 の \`${owner}\` が見つかるので、解決は成功します。ここで確認されるのは**クラスの存在だけ**で、メソッドの有無はまだ確認されません。`,
       tone: 'resolve',
       specs: ['5.4.3.1'],
       pc: insns[0].pc,
@@ -103,7 +103,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       bar: 'new',
     },
     {
-      title: `\`invokespecial #${ctorRef}\` — コンストラクタも見つかる`,
+      title: `\`invokespecial #${ctorRef}\` — コンストラクタの Methodref も解決できる`,
       body: `\`${owner}.<init>:()V\` は 2.0 にもあります。解決できるので、インスタンスが作られます。`,
       tone: 'resolve',
       specs: ['5.4.3.3'],
@@ -114,8 +114,8 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       bar: 'new',
     },
     {
-      title: `\`invokevirtual #${callRef}\` — ここで探しに行く`,
-      body: `\`#${callRef}\` は \`${cpText(foo, callRef)}\`。class_index \`#${classRef}\` は解決済みなので、NameAndType \`#${natRef}\` から名前 \`${callName}\` と記述子 \`()V\` を取り出し、\`${owner}\` とその親クラスから探します。`,
+      title: `\`invokevirtual #${callRef}\` — ${callName}() の Methodref を解決する`,
+      body: `\`#${callRef}\` は \`${cpText(foo, callRef)}\` です。class_index \`#${classRef}\` は解決済みなので、NameAndType \`#${natRef}\` から名前 \`${callName}\` と記述子 \`()V\` を取り出し、\`${owner}\` とその親クラスからメソッドを探します。`,
       tone: 'resolve',
       specs: ['5.4.3.3'],
       pc: insns.find((i) => i.cp === callRef)!.pc,
@@ -130,8 +130,8 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       ],
     },
     {
-      title: 'どこにもないので NoSuchMethodError',
-      body: `2.0 の \`${owner}\` には \`${callName}()\` がありません。親クラス \`java/lang/Object\` にもないので、メソッドの探索は失敗します。JVM は \`NoSuchMethodError\` を投げます。これは \`IncompatibleClassChangeError\` の一種で、**LinkageError** の仲間です。`,
+      title: `${callName}() が見つからず NoSuchMethodError`,
+      body: `2.0 の \`${owner}\` には \`${callName}()\` がありません。親クラス \`java/lang/Object\` にもないので、メソッドの探索は失敗します。JVM は \`NoSuchMethodError\` を投げます。これは \`IncompatibleClassChangeError\` のサブクラスで、さらにその親が **LinkageError** です。`,
       tone: 'error',
       specs: ['5.4.3.3', '5.4.3'],
       pc: insns.find((i) => i.cp === callRef)!.pc,
@@ -149,8 +149,8 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       ],
     },
     {
-      title: '次に同じ命令を実行しても、同じエラー',
-      body: '解決に失敗した記号参照は、その後も同じエラーになります。探索をやり直すことはありません。エラーは、その参照を**使う場所**で投げられます。だから呼ばれないメソッドの中にあれば、いつまでも気づけません。',
+      title: '同じ命令を再実行しても同じエラーになる',
+      body: '一度解決に失敗した記号参照は、その後の解決も同じエラーになります。探索はやり直されません。エラーが投げられるのは、その参照を**使う命令を実行したとき**です。そのため、実行されないコードパスにある参照は、いつまでも検出されません。',
       tone: 'error',
       specs: ['5.4.3'],
       resolved: ['class', 'ctor'],
@@ -160,8 +160,8 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       run: 'new',
     },
     {
-      title: '実行する前に気づくには',
-      body: `\`Foo.class\` の定数プールには \`${cpText(foo, callRef)}\` という**名前**が残っています。クラスパスにある class ファイルを読めば、JVM と同じ突き合わせを、実行せずにできます。`,
+      title: '実行せずに検出する方法',
+      body: `\`Foo.class\` の定数プールには \`${cpText(foo, callRef)}\` という**名前と記述子**が残っています。クラスパスにある class ファイルを読んで突き合わせれば、JVM が解決時に行う検査を、実行せずに再現できます。`,
       tone: 'done',
       specs: ['4.4.2', '5.4.3.3'],
       resolved: ['class', 'ctor'],
@@ -187,15 +187,15 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
   const noteBox = h(
     'div',
     { class: 'panel check-note' },
-    h('h3', { class: 'panel-title' }, '先に気づくには'),
+    h('h3', { class: 'panel-title' }, '実行前に検出する'),
     h(
       'p',
       {},
       rich(
-        '定数プールに残っているのは名前だけです。だからこそ、実行しなくてもクラスパスと突き合わせれば、同じ検査ができます。ライブラリの新旧を比べて、壊れる参照だけを報告するツールが',
+        '定数プールにあるのは名前と記述子だけなので、実行しなくても、クラスパス上の class ファイルと突き合わせれば同じ検査ができます。ライブラリの新旧を比べて、壊れる参照だけを報告するツールが',
       ),
       h('a', { href: 'https://github.com/exoego/uika', target: '_blank', rel: 'noopener' }, ' Uika '),
-      rich('です。PR の時点で `NoSuchMethodError` などを見つけます。'),
+      rich('です。PR の時点で `NoSuchMethodError` などを検出します。'),
     ),
   );
 
@@ -246,7 +246,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       'div',
       { class: 'rt-col' },
       panel('run-panel', '実行', null, terminal),
-      panel('grow', 'LinkageError の仲間', null, tree),
+      panel('grow', 'LinkageError の階層', null, tree),
     ),
   );
 
@@ -326,7 +326,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
           class: `mrow${side === 'old' && m.name === callName ? ' had' : ''}`,
         },
         h('span', { class: 'mname' }, memberLabel(m)),
-        side === 'old' && m.name === callName ? h('span', { class: 'mtag' }, 'Foo が呼ぶ相手') : null,
+        side === 'old' && m.name === callName ? h('span', { class: 'mtag' }, 'Foo が参照') : null,
       ),
     );
     if (side === 'new' && gone && step.missing) {
@@ -335,7 +335,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
           'div',
           { class: 'mrow gone' },
           h('span', { class: 'mname' }, `${callName}() → void`),
-          h('span', { class: 'mtag' }, 'ない'),
+          h('span', { class: 'mtag' }, '2.0 にはない'),
         ),
       );
     }
@@ -384,7 +384,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
           'div',
           { class: `tnode d${node.depth}${node.here && step.failed ? ' here' : ''}` },
           h('span', {}, node.name),
-          node.here && step.failed ? h('span', { class: 'mtag' }, '今回') : null,
+          node.here && step.failed ? h('span', { class: 'mtag' }, '今回の例外') : null,
         ),
       ),
     );

@@ -5,7 +5,7 @@ import { hideTooltip, showTooltip } from '../ui/tooltip';
 import { buildGraph, edgePath, NODE_H, NODE_W, nodeText } from './graph';
 
 const KIND_DESC: Record<CpKind, string> = {
-  Utf8: '文字列そのもの。クラス名、メソッド名、記述子、属性名。名前はすべて、最後はここにたどり着きます。長さ u2 のあとに Modified UTF-8 のバイト列が続きます。',
+  Utf8: '文字列そのものを持つエントリです。クラス名、メソッド名、記述子、属性名は、すべて最終的に Utf8 エントリを指します。長さ (u2) のあとに Modified UTF-8 のバイト列が続きます。',
   Class: 'クラスまたはインターフェースへの参照。中身は名前 (Utf8) の番号だけです。',
   String: '`java.lang.String` の定数。文字そのものは持たず、Utf8 の番号を持ちます。',
   Integer: '4 バイトの int 定数。-32768〜32767 に収まる値は、ふつう命令 (bipush, sipush) に直接埋め込まれるので、ここには入りません。',
@@ -114,7 +114,7 @@ export function mountPool(root: HTMLElement, cf: ClassFile, initial?: number): {
   const picks = h(
     'div',
     { class: 'picks' },
-    h('span', { class: 'label' }, 'たどってみる'),
+    h('span', { class: 'label' }, '例'),
     PICKS.map((p) => {
       const index = p.find(cf);
       if (!index) return null;
