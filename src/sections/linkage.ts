@@ -161,7 +161,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
     },
     {
       title: '実行せずに検出する方法',
-      body: `\`Foo.class\` の定数プールには \`${cpText(foo, callRef)}\` という**名前と記述子**が残っています。クラスパスにある class ファイルを読んで突き合わせれば、JVM が解決時に行う検査を、実行せずに再現できます。`,
+      body: `\`Foo.class\` の定数プールには \`${cpText(foo, callRef)}\` という**名前と記述子**が残っています。クラスパスにある class ファイルを読んで突き合わせれば、実行せずに JVM と同じ検査ができます。`,
       tone: 'done',
       specs: ['4.4.2', '5.4.3.3'],
       resolved: ['class', 'ctor'],
@@ -192,10 +192,10 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
       'p',
       {},
       rich(
-        '定数プールにあるのは名前と記述子だけなので、実行しなくても、クラスパス上の class ファイルと突き合わせれば同じ検査ができます。ライブラリの新旧を比べて、壊れる参照だけを報告するツールが',
+        '定数プールにあるのは名前と記述子だけなので、実行しなくても、クラスパス上の class ファイルと突き合わせれば同じ検査ができます。ライブラリの新旧を比べて、壊れる参照だけを報告するツールもあります。',
       ),
       h('a', { href: 'https://github.com/exoego/uika', target: '_blank', rel: 'noopener' }, ' Uika '),
-      rich('です。PR の時点で `NoSuchMethodError` などを検出します。'),
+      rich('は、PR の時点で `NoSuchMethodError` などを検出します。'),
     ),
   );
 

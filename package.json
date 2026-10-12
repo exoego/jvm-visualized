@@ -8,9 +8,19 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "sample": "javac --release 21 -d samples samples/Greeter.java",
-    "sample:linkage": "rm -rf samples/linkage/classes && javac -d samples/linkage/classes/bar-v1 samples/linkage/bar-v1/bar/Bar.java && javac -d samples/linkage/classes/bar-v2 samples/linkage/bar-v2/bar/Bar.java && javac -cp samples/linkage/classes/bar-v1 -d samples/linkage/classes/foo samples/linkage/foo/foo/Foo.java && javac -cp samples/linkage/classes/foo:samples/linkage/classes/bar-v1 -d samples/linkage/classes/app samples/linkage/app/Main.java"
+    "sample:linkage": "rm -rf samples/linkage/classes && javac -d samples/linkage/classes/bar-v1 samples/linkage/bar-v1/bar/Bar.java && javac -d samples/linkage/classes/bar-v2 samples/linkage/bar-v2/bar/Bar.java && javac -cp samples/linkage/classes/bar-v1 -d samples/linkage/classes/foo samples/linkage/foo/foo/Foo.java && javac -cp samples/linkage/classes/foo:samples/linkage/classes/bar-v1 -d samples/linkage/classes/app samples/linkage/app/Main.java",
+    "lint:text": "node textlint/lint.js",
+    "lint:text:fix": "node textlint/lint.js --fix"
   },
   "devDependencies": {
+    "@babel/parser": "^8.0.7",
+    "@textlint/kernel": "^15.8.0",
+    "@textlint/markdown-to-ast": "^15.8.0",
+    "textlint": "^15.8.0",
+    "textlint-plugin-html": "^1.0.1",
+    "textlint-rule-preset-ja-spacing": "^3.0.3",
+    "textlint-rule-preset-ja-technical-writing": "^12.0.2",
+    "textlint-rule-prh": "^6.1.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.0"
   }

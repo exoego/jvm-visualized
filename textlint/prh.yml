@@ -1,0 +1,46 @@
+version: 1
+
+# このページで使う用語の表記。パターンに当たると expected への統一を求める。
+rules:
+  - expected: class ファイル
+    patterns:
+      - クラスファイル
+      - classファイル
+  - expected: 定数プール
+    patterns:
+      - コンスタントプール
+      - 定数プル
+  - expected: 実行時定数プール
+    patterns:
+      - ランタイム定数プール
+      - ランタイムコンスタントプール
+  - expected: 記号参照
+    patterns:
+      - シンボリック参照
+      - シンボル参照
+  - expected: 記述子
+    patterns:
+      - ディスクリプタ
+      - ディスクリプター
+  - expected: インターフェース
+    patterns:
+      - インタフェース
+      - インターフェイス
+  - expected: メソッド領域
+    pattern: メソッドエリア
+  - expected: ローカル変数
+    pattern: 局所変数
+  - expected: オペランドスタック
+    pattern: オペランド・スタック
+  - expected: コンストラクタ
+    pattern: コンストラクター
+  - expected: レシーバ
+    pattern: レシーバー
+  - expected: クラスローダー
+    pattern: /クラスローダ(?!ー)/
+  - expected: ブートストラップメソッド
+    pattern: ブートストラップ・メソッド
+  - expected: バイトコード
+    pattern: バイトコート
+  - expected: 属性
+    pattern: アトリビュート
