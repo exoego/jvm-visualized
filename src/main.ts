@@ -19,6 +19,13 @@ async function load(url: string) {
   return parseClassFile(new Uint8Array(await response.arrayBuffer()));
 }
 
+// ブラウザの hash スクロールは章を描画する前の高さで決まるので、描画後に飛び直す
+function scrollToHash(): void {
+  const id = decodeURIComponent(location.hash.slice(1));
+  if (!id) return;
+  document.getElementById(id)?.scrollIntoView({ behavior: 'instant' });
+}
+
 async function main(): Promise<void> {
   const response = await fetch(classUrl);
   const bytes = new Uint8Array(await response.arrayBuffer());
@@ -50,6 +57,7 @@ async function main(): Promise<void> {
 
   initReveal();
   trackNav();
+  scrollToHash();
 }
 
 main().catch((error: unknown) => {
