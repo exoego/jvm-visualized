@@ -9,12 +9,12 @@ import {
   type Tone,
   type Value,
 } from '../runtime/machine';
-import copyText from '../copy/runtime.md?raw';
+import copyText from '../copy/04-runtime.md?raw';
 import { loadCopy } from '../ui/copy';
 import { fill, fitter, h, rich, showable, specLink, svg, type Fitter } from '../ui/dom';
 import { Player } from '../ui/player';
 
-const copy = loadCopy(copyText, 'runtime');
+const copy = loadCopy(copyText, '04-runtime');
 
 const TONE_LABEL: Record<Tone, string> = {
   load: 'ロード',

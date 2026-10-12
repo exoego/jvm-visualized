@@ -1,9 +1,9 @@
 import { cpText, prettyDescriptor } from '../classfile/describe';
 import type { ClassFile, CodeInfo, CpKind, Instruction, Member } from '../classfile/types';
-import copyText from '../copy/machine.md?raw';
+import copyText from '../copy/04-machine.md?raw';
 import { loadCopy } from '../ui/copy';
 
-const copy = loadCopy(copyText, 'machine');
+const copy = loadCopy(copyText, '04-machine');
 
 export type Value = { t: 'ref'; id: number } | { t: 'null' };
 
