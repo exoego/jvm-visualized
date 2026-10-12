@@ -1,4 +1,3 @@
-import './style.css';
 import classUrl from '../samples/Greeter.class?url';
 import barNewUrl from '../samples/linkage/classes/bar-v2/bar/Bar.class?url';
 import barOldUrl from '../samples/linkage/classes/bar-v1/bar/Bar.class?url';
