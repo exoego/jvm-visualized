@@ -2003,6 +2003,10 @@ code,
   animation: flash 0.9s var(--ease);
 }
 
+.rcp.hit {
+  animation: hit 0.9s var(--ease);
+}
+
 .chain {
   display: flex;
   flex-direction: column;
@@ -2326,6 +2330,12 @@ code,
 @keyframes flash {
   0% { background: rgba(48, 209, 88, 0.22); box-shadow: 0 0 24px rgba(48, 209, 88, 0.45); }
   100% { box-shadow: 0 0 24px rgba(48, 209, 88, 0); }
+}
+
+/* 緑の flash は解決済みの意味なので、クリックで行を探すときは青にする */
+@keyframes hit {
+  0% { background: rgba(10, 132, 255, 0.28); box-shadow: 0 0 24px rgba(10, 132, 255, 0.5); }
+  100% { box-shadow: 0 0 24px rgba(10, 132, 255, 0); }
 }
 
 @keyframes flash-text {

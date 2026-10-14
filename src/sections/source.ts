@@ -490,7 +490,12 @@ export function mountSource(
                   h('span', { class: 'pc' }, String(insn.pc)),
                   h('span', { class: 'op' }, insn.mnemonic),
                   insn.cp
-                    ? h('span', { class: 'ref' }, h('span', { class: `cp-ref k-${cf.pool[insn.cp]?.kind}` }, `#${insn.cp}`), h('span', { class: 'tx' }, nodeText(cf, insn.cp)))
+                    ? h(
+                        'span',
+                        { class: 'ref' },
+                        h('button', { class: `cp-ref k-${cf.pool[insn.cp]?.kind}`, type: 'button', onclick: () => openInPool(insn.cp!) }, `#${insn.cp}`),
+                        h('span', { class: 'tx' }, nodeText(cf, insn.cp)),
+                      )
                     : h('span', { class: 'm' }, '定数プールは使わない'),
                 ),
               ),
@@ -514,7 +519,11 @@ export function mountSource(
                     'span',
                     { class: 'refs' },
                     list.map((st) =>
-                      h('span', { class: `cp-ref k-${cf.pool[st.cp]?.kind}`, title: `${st.label} → ${nodeText(cf, st.cp)}` }, `#${st.cp}`),
+                      h(
+                        'button',
+                        { class: `cp-ref k-${cf.pool[st.cp]?.kind}`, type: 'button', title: `${st.label} → ${nodeText(cf, st.cp)}`, onclick: () => openInPool(st.cp) },
+                        `#${st.cp}`,
+                      ),
                     ),
                   ),
                 ),

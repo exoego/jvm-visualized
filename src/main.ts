@@ -47,11 +47,12 @@ async function main(): Promise<void> {
   mountStart(mount('start')!, cf, javaSource);
   mountStructure(mount('structure')!, cf);
   const pool = mountPool(mount('pool')!, cf);
-  mountSource(mount('source')!, cf, javaSource, (index) => {
+  const openInPool = (index: number) => {
     pool.select(index);
     document.getElementById('pool')?.scrollIntoView({ behavior: 'smooth' });
-  });
-  mountRuntime(mount('runtime')!, cf);
+  };
+  mountSource(mount('source')!, cf, javaSource, openInPool);
+  mountRuntime(mount('runtime')!, cf, openInPool);
   const [foo, barOld, barNew] = await Promise.all([load(fooUrl), load(barOldUrl), load(barNewUrl)]);
   mountLinkage(mount('linkage')!, foo, barOld, barNew);
 
