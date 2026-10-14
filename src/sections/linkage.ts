@@ -261,12 +261,22 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
           h(
             'span',
             { class: 'cm' },
-            insn.cp ? h('span', { class: `cp-ref k-${foo.pool[insn.cp]?.kind}` }, `#${insn.cp}`) : null,
+            insn.cp
+              ? h('button', { class: `cp-ref k-${foo.pool[insn.cp]?.kind}`, type: 'button', onclick: () => locatePoolRow(insn.cp!) }, `#${insn.cp}`)
+              : null,
             h('span', { class: 'txt' }, insn.cp ? showable(cpText(foo, insn.cp)) : ''),
           ),
         ),
       ),
     );
+  }
+
+  function locatePoolRow(index: number): void {
+    const row = poolList.querySelector<HTMLElement>(`[data-cp="${index}"]`);
+    if (!row) return;
+    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    row.classList.add('hit');
+    row.addEventListener('animationend', () => row.classList.remove('hit'), { once: true });
   }
 
   function renderPool(step: Step): void {
@@ -286,6 +296,7 @@ export function mountLinkage(root: HTMLElement, foo: ClassFile, barOld: ClassFil
           {
             class: `rcp k-${entry.kind} ${failed ? 'failed' : resolved ? 'resolved' : 'unresolved'}${focus ? ' focus open' : ''}`,
             style: '--fc: var(--blue)',
+            'data-cp': String(index),
           },
           h(
             'div',

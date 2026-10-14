@@ -59,7 +59,7 @@ function sameValue(a: Value | null | undefined, b: Value | null | undefined): bo
   return a.t === 'null' || (b.t === 'ref' && a.id === b.id);
 }
 
-export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
+export function mountRuntime(root: HTMLElement, cf: ClassFile, openInPool: (index: number) => void): void {
   const snapshots = simulate(cf);
   const methodOrder = cf.methods
     .filter((m) => m.attributes.some((a) => a.name === 'Code'))
@@ -248,7 +248,9 @@ export function mountRuntime(root: HTMLElement, cf: ClassFile): void {
           h(
             'span',
             { class: 'cm' },
-            insn.cp ? h('span', { class: `cp-ref k-${cf.pool[insn.cp]?.kind}` }, `#${insn.cp}`) : null,
+            insn.cp
+              ? h('button', { class: `cp-ref k-${cf.pool[insn.cp]?.kind}`, type: 'button', onclick: () => openInPool(insn.cp!) }, `#${insn.cp}`)
+              : null,
             h('span', { class: 'txt' }, showable(operandText(cf, insn))),
           ),
         );
