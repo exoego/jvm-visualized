@@ -178,7 +178,7 @@ String エントリは記号参照ではなく**静的定数**で、解決は要
 <!-- getstatic -->
 ## `getstatic #{index}` — static フィールドを読む
 
-フィールドを宣言している `{className}` は、JVM の起動時に初期化済みです (§5.5)。`{name}` の値 PrintStream@{id} をスタックに積みます。
+フィールドを宣言している `{className}` は JVM の起動時に初期化済みなので、ここで初期化は起きません (§5.5)。`{name}` の値 PrintStream@{id} をスタックに積みます。
 
 <!-- invokevirtual-cached -->
 ## `invokevirtual #{index}` — 解決済みの結果で呼ぶ
